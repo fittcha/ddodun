@@ -1,4 +1,4 @@
-const DAY_LABELS = ['월', '화', '수', '목', '금', '토', '일']
+const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
 
 export { DAY_LABELS }
 
@@ -7,9 +7,8 @@ export function getMonthDays(year: number, month: number) {
   const lastDay = new Date(year, month, 0)
   const daysInMonth = lastDay.getDate()
 
-  // Monday = 0, Sunday = 6
-  let startDow = firstDay.getDay() - 1
-  if (startDow < 0) startDow = 6
+  // Sunday = 0, Saturday = 6
+  const startDow = firstDay.getDay()
 
   const days: (number | null)[] = []
 

@@ -26,6 +26,7 @@ export async function getLogDatesByMonth(userId: string, year: number, month: nu
     .from('workout_logs')
     .select('date')
     .eq('user_id', userId)
+    .eq('completed', true)
     .gte('date', startDate)
     .lt('date', endDate)
 

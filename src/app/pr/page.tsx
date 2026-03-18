@@ -181,7 +181,7 @@ export default function PRPage() {
   }, {})
 
   return (
-    <div className="px-4 space-y-8">
+    <div className="space-y-8">
       {/* Sub-tab navigation */}
       <div className="flex border-b border-border">
         <button
