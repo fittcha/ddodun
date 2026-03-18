@@ -270,7 +270,7 @@ function WorkoutContent() {
       {/* Calculator panel */}
       {calcOpen && (
         <>
-        <div className="fixed inset-0 z-[55] bg-black/20 backdrop-blur-[2px]" onClick={() => setCalcOpen(false)} />
+        <div className="fixed inset-0 z-[55] bg-black/20" onClick={() => setCalcOpen(false)} />
         <div className="fixed bottom-[4rem] left-3 right-3 z-[60] bg-surface border border-border rounded-2xl shadow-lg">
           <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-1">
             <div className="flex-1 min-w-0">
