@@ -921,13 +921,13 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
 
             {/* Per-group memo panel */}
             {gMemoOpen && (
-              <div className="px-4 py-2 border-t border-accent/30 bg-accent/15">
+              <div className="px-4 py-2 border-t border-border">
                 <input
                   type="text"
                   value={gMemo}
                   onChange={e => handleMemoChangeFor(gAnchor, e.target.value)}
                   placeholder="메모"
-                  className="w-full px-2 py-1 text-xs rounded border border-border bg-surface text-foreground placeholder:text-text-secondary/40 focus:outline-none focus:border-accent"
+                  className="w-full px-2 py-1 text-xs rounded border border-border bg-background text-foreground placeholder:text-text-secondary/40 focus:outline-none focus:border-accent"
                 />
               </div>
             )}
