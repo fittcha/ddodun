@@ -58,7 +58,7 @@ function emitChange(data: ResultData, sets: ResultEntry[], onChange: (d: ResultD
 }
 
 export default function ResultInput({ data, onChange }: Props) {
-  const inputCls = "w-10 text-center text-xs font-bold rounded border border-border bg-background py-1 text-foreground placeholder:text-text-secondary/20 focus:outline-none focus:border-accent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+  const inputCls = "w-10 text-center text-xs rounded border border-border bg-background py-1 text-foreground placeholder:text-text-secondary/20 focus:outline-none focus:border-accent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
 
   const sets = getSets(data)
 

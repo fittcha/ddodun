@@ -111,7 +111,7 @@ function WeightButton({ isOpen, onOpen, onClose, weight, unit, onAdjust, onSet, 
           value={weight ?? ''}
           onChange={e => onSet(e.target.value ? parseFloat(e.target.value) : null)}
           placeholder="—"
-          className="w-12 text-center text-xs font-bold rounded border border-border bg-background py-1 text-foreground placeholder:text-text-secondary/20 focus:outline-none focus:border-accent"
+          className="w-12 text-center text-xs rounded border border-border bg-background py-1 text-foreground placeholder:text-text-secondary/20 focus:outline-none focus:border-accent"
         />
         <button onClick={() => onAdjust(5)} className="w-6 h-6 rounded border border-border bg-background flex items-center justify-center text-text-secondary/50 text-xs active:bg-accent/10">+</button>
         <button onClick={onToggleUnit} className="text-[10px] font-bold text-accent w-5 text-center">{unit}</button>

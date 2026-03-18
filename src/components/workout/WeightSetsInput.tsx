@@ -63,7 +63,7 @@ export default function WeightSetsInput({ data, onChange }: Props) {
             value={s.weight ?? ''}
             onChange={e => updateSet(i, e.target.value ? parseFloat(e.target.value) : null)}
             placeholder="—"
-            className="w-14 text-center text-xs font-bold rounded border border-border bg-background py-1 text-foreground placeholder:text-text-secondary/20 focus:outline-none focus:border-accent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            className="w-14 text-center text-xs rounded border border-border bg-background py-1 text-foreground placeholder:text-text-secondary/20 focus:outline-none focus:border-accent [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
           <button
             onClick={() => adjustSet(i, 5)}

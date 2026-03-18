@@ -49,7 +49,7 @@ export default function EmomBuilder({ data, onChange }: Props) {
             value={entry.value ?? ''}
             onChange={e => update(i, { value: e.target.value ? parseInt(e.target.value) : null })}
             placeholder="0"
-            className="w-8 text-center text-[11px] font-bold rounded border border-border bg-background py-1 text-foreground placeholder:text-text-secondary/20 focus:outline-none focus:border-accent"
+            className="w-8 text-center text-[11px] rounded border border-border bg-background py-1 text-foreground placeholder:text-text-secondary/20 focus:outline-none focus:border-accent"
           />
           <button
             onClick={() => update(i, { measure: entry.measure === 'reps' ? 'cal' : 'reps' })}
