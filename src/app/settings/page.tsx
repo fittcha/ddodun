@@ -103,7 +103,7 @@ export default function SettingsPage() {
       {/* Logout */}
       <button
         onClick={handleLogout}
-        className="w-full py-3 rounded-lg border border-danger text-danger font-medium transition-opacity hover:opacity-80"
+        className="w-full py-2 rounded-lg border border-border text-sm text-text-secondary transition-opacity hover:opacity-80"
       >
         로그아웃
       </button>
