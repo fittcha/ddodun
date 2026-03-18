@@ -179,7 +179,7 @@ function WorkoutContent() {
                   }`}
                 >
                   <span className={`text-[10px] ${
-                    isSelected ? 'text-white/70' : isWeekend ? 'text-danger/60' : 'text-text-secondary'
+                    isSelected ? 'text-white/70' : i === 5 ? 'text-success/60' : i === 6 ? 'text-danger/60' : 'text-text-secondary'
                   }`}>
                     {DAY_LABELS[i]}
                   </span>
