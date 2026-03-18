@@ -481,7 +481,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
   const firstGMemoOpen = !!memoOpen[firstGroupAnchor]
 
   return (
-    <div className="bg-surface border border-text-secondary/30 rounded-xl overflow-hidden">
+    <div className="bg-surface border border-border rounded-xl overflow-hidden">
       {/* Section header — includes first group's result/memo buttons */}
       <div className="px-4 py-2 bg-background border-b border-border flex items-center gap-2">
         <button
