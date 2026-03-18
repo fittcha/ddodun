@@ -174,7 +174,7 @@ function WorkoutContent() {
                       : isToday
                         ? 'bg-accent/10'
                         : hasTemplate
-                          ? 'border border-warm'
+                          ? 'border border-border'
                           : ''
                   }`}
                 >

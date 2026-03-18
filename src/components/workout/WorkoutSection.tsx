@@ -481,7 +481,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
   const firstGMemoOpen = !!memoOpen[firstGroupAnchor]
 
   return (
-    <div className="bg-surface border border-text-secondary/30 rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-surface border border-text-secondary/30 rounded-xl overflow-hidden">
       {/* Section header — includes first group's result/memo buttons */}
       <div className="px-4 py-2 bg-background border-b border-border flex items-center gap-2">
         <button
@@ -889,8 +889,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                     onChange={(data) => handleEmomChangeFor(gAnchor, data)}
                   />
                 ) : (
-                  <div className="flex justify-end">
-                    <div className="w-1/2 space-y-2">
+                  <div className="space-y-2">
                       <div className="flex items-center gap-3 justify-end">
                         {([['weight', 'WT'], ['rounds', 'Rounds'], ['reps', 'Reps'], ['cal', 'Cal'], ['time', 'Time']] as const).map(([val, label]) => (
                           <button
@@ -915,7 +914,6 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                           onChange={(data) => handleResultChangeFor(gAnchor, data)}
                         />
                       )}
-                    </div>
                   </div>
                 )}
               </div>
