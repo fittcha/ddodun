@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/* Classic theme (default) — dark green + warm beige + system blue */
+:root, [data-theme="classic"] {
+  --background: #FAFAFA;
+  --foreground: #1A1A1A;
+  --surface: #FFFFFF;
+  --text-secondary: #6B7280;
+  --accent: #1E4D2B;
+  --accent-light: #E2D5BE;
+  --border: #E5E7EB;
+  --danger: #D94F4F;
+  --success: #007AFF;
+  --highlight: #F0E6D3;
+  --highlight-text: #1E4D2B;
+  --warm: #C9B896;
+}
+
+/* Gold theme */
+[data-theme="gold"] {
+  --background: #FAFAFA;
+  --surface: #FFFFFF;
+  --border: #E5E7EB;
+  --success: #D4A017;
+  --highlight: #FEF3C7;
+  --highlight-text: #92400E;
+}
+
+/* Warm theme */
+[data-theme="warm"] {
+  --background: #F5F3EE;
+  --surface: #FFFEFA;
+  --border: #E8E4DC;
+  --success: #2D5A3D;
+  --highlight: #E8F0EB;
+  --highlight-text: #2D5A3D;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-text-secondary: var(--text-secondary);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-border: var(--border);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-highlight: var(--highlight);
+  --color-highlight-text: var(--highlight-text);
+  --color-warm: var(--warm);
+  --font-sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
