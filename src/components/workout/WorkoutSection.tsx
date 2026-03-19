@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, memo } from 'react'
+import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react'
 import type { WorkoutTemplate } from '@/lib/api/workout-templates'
 import type { WorkoutLog } from '@/lib/api/workout-logs'
 import { upsertLog } from '@/lib/api/workout-logs'
@@ -206,7 +206,16 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
   const pendingSavesRef = useRef<Record<string, () => void>>({})
   const localLogsRef = useRef<Record<string, WorkoutLog>>({})
 
-  const templateGroups = computeGroups(templates)
+  // Memoize expensive parsing — only recompute when templates change
+  const parsedDescriptions = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof parseDescription>>()
+    for (const t of templates) {
+      map.set(t.id, parseDescription(t.description))
+    }
+    return map
+  }, [templates])
+
+  const templateGroups = useMemo(() => computeGroups(templates), [templates])
 
   const initializedRef = useRef(false)
 
@@ -728,7 +737,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
             {group.templates.map((template, idx) => {
               const log = getLog(template.id)
               const completed = log?.completed ?? false
-              const parsed = parseDescription(template.description)
+              const parsed = parsedDescriptions.get(template.id)!
               const weight = getWeight(template.id)
               const unit = getUnit(template.id)
 
@@ -1008,13 +1017,22 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
   )
 }
 
+function logsEqual(a: WorkoutLog[], b: WorkoutLog[]): boolean {
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    if (a[i].id !== b[i].id || a[i].completed !== b[i].completed) return false
+  }
+  return true
+}
+
 const WorkoutSection = memo(WorkoutSectionInner, (prev, next) => {
   return (
     prev.userId === next.userId &&
     prev.section === next.section &&
     prev.date === next.date &&
-    prev.templates === next.templates &&
-    prev.logs === next.logs
+    prev.templates.length === next.templates.length &&
+    prev.templates.every((t, i) => t.id === next.templates[i].id) &&
+    logsEqual(prev.logs, next.logs)
   )
 })
 

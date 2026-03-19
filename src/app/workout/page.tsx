@@ -12,6 +12,8 @@ import { getCompetitionByDate, type Competition } from '@/lib/api/competitions'
 import { getToday, getWeekDays, WEEK_DAY_LABELS } from '@/lib/date-utils'
 import { getLoggedInUser } from '@/lib/auth'
 
+const emptyLogs: WorkoutLog[] = []
+
 function WorkoutContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -231,7 +233,7 @@ function WorkoutContent() {
             userId={userId}
             section={section}
             templates={sectionTemplates}
-            logs={sectionLogs.get(section) || []}
+            logs={sectionLogs.get(section) ?? emptyLogs}
             date={date}
             onLogUpdate={handleLogUpdate}
           />
