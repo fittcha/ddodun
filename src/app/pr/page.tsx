@@ -144,17 +144,13 @@ export default function PRPage() {
   }
 
   async function handlePaceSave(equipment: string, distance: string, timeSeconds: number) {
-    try {
-      const saved = await upsertPaceRecord(userId, equipment, distance, timeSeconds)
-      setPaceModalOpen(false)
-      setPaceRecords(prev => {
-        const idx = prev.findIndex(r => r.id === saved.id)
-        if (idx >= 0) { const next = [...prev]; next[idx] = saved; return next }
-        return [...prev, saved]
-      })
-    } catch (err) {
-      console.error('Failed to save pace:', err)
-    }
+    const saved = await upsertPaceRecord(userId, equipment, distance, timeSeconds)
+    setPaceModalOpen(false)
+    setPaceRecords(prev => {
+      const idx = prev.findIndex(r => r.id === saved.id)
+      if (idx >= 0) { const next = [...prev]; next[idx] = saved; return next }
+      return [...prev, saved]
+    })
   }
 
   async function handlePaceDelete(id: string) {

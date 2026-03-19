@@ -12,7 +12,7 @@ const DISTANCE_BY_EQUIPMENT: Record<string, string[]> = {
 interface PaceAddModalProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (equipment: string, distance: string, timeSeconds: number) => void
+  onSave: (equipment: string, distance: string, timeSeconds: number) => Promise<void>
 }
 
 export default function PaceAddModal({ isOpen, onClose, onSave }: PaceAddModalProps) {
@@ -23,15 +23,24 @@ export default function PaceAddModal({ isOpen, onClose, onSave }: PaceAddModalPr
 
   if (!isOpen) return null
 
-  function handleSubmit(e: React.FormEvent) {
+  const [saving, setSaving] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!equipment || !distance || !minutes) return
+    if (!equipment || !distance || !minutes || saving) return
     const totalSeconds = parseInt(minutes) * 60 + (parseInt(seconds) || 0)
-    onSave(equipment, distance, totalSeconds)
-    setEquipment('')
-    setDistance('')
-    setMinutes('')
-    setSeconds('')
+    setSaving(true)
+    try {
+      await onSave(equipment, distance, totalSeconds)
+      setEquipment('')
+      setDistance('')
+      setMinutes('')
+      setSeconds('')
+    } catch (err) {
+      console.error('Failed to save pace:', err)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -79,7 +88,7 @@ export default function PaceAddModal({ isOpen, onClose, onSave }: PaceAddModalPr
           </div>
           <div>
             <label className="block text-sm text-text-secondary mb-1">총 시간 (mm:ss) *</label>
-            <div className="flex items-center gap-2">
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
               <input
                 type="number"
                 value={minutes}
@@ -87,7 +96,7 @@ export default function PaceAddModal({ isOpen, onClose, onSave }: PaceAddModalPr
                 required
                 placeholder="분"
                 min="0"
-                className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent"
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent"
               />
               <span className="text-lg font-bold">:</span>
               <input
@@ -97,7 +106,7 @@ export default function PaceAddModal({ isOpen, onClose, onSave }: PaceAddModalPr
                 placeholder="초"
                 min="0"
                 max="59"
-                className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent"
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center focus:outline-none focus:border-accent"
               />
             </div>
             {equipment && distance && minutes && (() => {
@@ -119,10 +128,10 @@ export default function PaceAddModal({ isOpen, onClose, onSave }: PaceAddModalPr
           </div>
           <button
             type="submit"
-            disabled={!equipment || !distance || !minutes}
+            disabled={!equipment || !distance || !minutes || saving}
             className="w-full py-2.5 rounded-lg bg-accent text-white font-medium disabled:opacity-50"
           >
-            저장
+            {saving ? '저장 중...' : '저장'}
           </button>
         </form>
       </div>
