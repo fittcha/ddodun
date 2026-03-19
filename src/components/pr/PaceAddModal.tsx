@@ -20,10 +20,9 @@ export default function PaceAddModal({ isOpen, onClose, onSave }: PaceAddModalPr
   const [distance, setDistance] = useState('')
   const [minutes, setMinutes] = useState('')
   const [seconds, setSeconds] = useState('')
+  const [saving, setSaving] = useState(false)
 
   if (!isOpen) return null
-
-  const [saving, setSaving] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
