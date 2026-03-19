@@ -38,7 +38,7 @@ export async function getLogDatesByMonth(userId: string, year: number, month: nu
 export async function getLogsByDate(userId: string, date: string): Promise<WorkoutLog[]> {
   const { data, error } = await supabase
     .from('workout_logs')
-    .select('*')
+    .select('id, date, user_id, template_id, section, is_custom, exercise_name, completed, result_value, result_unit, sets_detail, memo, created_at')
     .eq('user_id', userId)
     .eq('date', date)
     .order('section')

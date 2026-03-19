@@ -14,6 +14,14 @@ import { getLoggedInUser } from '@/lib/auth'
 
 const emptyLogs: WorkoutLog[] = []
 
+// Client-side cache for date data (survives date switching within session)
+const dateCache = new Map<string, {
+  templates: WorkoutTemplate[]
+  logs: WorkoutLog[]
+  customLogs: WorkoutLog[]
+  competition: Competition | null
+}>()
+
 function WorkoutContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -25,6 +33,7 @@ function WorkoutContent() {
   const [competition, setCompetition] = useState<Competition | null>(null)
   const [weekTemplateDates, setWeekTemplateDates] = useState<Set<string>>(new Set())
   const [calcOpen, setCalcOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
   const userId = getLoggedInUser()?.id || ''
 
   const weekDays = getWeekDays(date)
@@ -38,24 +47,42 @@ function WorkoutContent() {
   }, [weekDays[0]]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = useCallback(async () => {
+    // Use cache for instant display
+    const cached = dateCache.get(date)
+    if (cached) {
+      setTemplates(cached.templates)
+      setLogs(cached.logs)
+      setCustomLogs(cached.customLogs)
+      setCompetition(cached.competition)
+    }
+
+    setLoading(!cached)
     try {
       const [tpls, lgs, comp] = await Promise.all([
         getTemplatesByDate(date),
         getLogsByDate(userId, date),
         getCompetitionByDate(userId, date),
       ])
-      setTemplates(tpls)
       const templateLogs = lgs.filter(l => !l.is_custom)
       const custom = lgs.filter(l => l.is_custom)
+
+      // Update cache
+      dateCache.set(date, { templates: tpls, logs: templateLogs, customLogs: custom, competition: comp })
+
+      setTemplates(tpls)
       setLogs(templateLogs)
       setCustomLogs(custom)
       setCompetition(comp)
     } catch (err) {
       console.error('Failed to load workout data:', err)
-      setTemplates([])
-      setLogs([])
-      setCustomLogs([])
-      setCompetition(null)
+      if (!cached) {
+        setTemplates([])
+        setLogs([])
+        setCustomLogs([])
+        setCompetition(null)
+      }
+    } finally {
+      setLoading(false)
     }
   }, [date])
 
@@ -84,14 +111,19 @@ function WorkoutContent() {
   const handleLogUpdate = useCallback((updated: WorkoutLog) => {
     setLogs(prev => {
       const idx = prev.findIndex(l => l.id === updated.id)
+      let next: WorkoutLog[]
       if (idx >= 0) {
-        const next = [...prev]
+        next = [...prev]
         next[idx] = updated
-        return next
+      } else {
+        next = [...prev, updated]
       }
-      return [...prev, updated]
+      // Update cache
+      const cached = dateCache.get(date)
+      if (cached) dateCache.set(date, { ...cached, logs: next })
+      return next
     })
-  }, [])
+  }, [date])
 
   function handleCustomAdd(log: WorkoutLog) {
     setCustomLogs(prev => [...prev, log])
@@ -226,6 +258,7 @@ function WorkoutContent() {
       )}
 
       {/* Workout sections */}
+      <div className={`transition-opacity duration-150 ${loading ? 'opacity-40' : ''}`}>
       {sections.length > 0 ? (
         sections.map(({ section, templates: sectionTemplates }) => (
           <WorkoutSection
@@ -243,6 +276,7 @@ function WorkoutContent() {
           등록된 운동이 없습니다
         </div>
       )}
+      </div>
 
       {/* Custom workout logs */}
       {customLogs.length > 0 && (
