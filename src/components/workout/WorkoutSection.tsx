@@ -525,6 +525,8 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
     })
   }
 
+  const [copyToast, setCopyToast] = useState(false)
+
   const allCompleted = templates.length > 0 && templates.every(t => getLog(t.id)?.completed)
   const someCompleted = templates.some(t => getLog(t.id)?.completed)
   const sectionLabel = extractSectionLabel(templates)
@@ -534,7 +536,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
   const firstGMemoOpen = !!memoOpen[firstGroupAnchor]
 
   return (
-    <div className="bg-surface border border-border rounded-xl overflow-hidden">
+    <div className="bg-surface border border-border rounded-xl overflow-hidden relative">
       {/* Section header — includes first group's result/memo buttons */}
       <div className="px-4 py-2 bg-background border-b border-border flex items-center gap-2">
         <button
@@ -587,6 +589,8 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                   return parts.join('\n')
                 }).join('\n\n')
                 navigator.clipboard.writeText(text)
+                setCopyToast(true)
+                setTimeout(() => setCopyToast(false), 1000)
               }}
               className="w-6 h-6 rounded flex items-center justify-center text-text-secondary/50 active:text-accent"
               title="원본 텍스트 복사"
@@ -1013,6 +1017,12 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
           </div>
         )
       })}
+      {/* Copy toast */}
+      {copyToast && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <span className="bg-foreground/80 text-white text-xs px-3 py-1.5 rounded-full">복사됨</span>
+        </div>
+      )}
     </div>
   )
 }
