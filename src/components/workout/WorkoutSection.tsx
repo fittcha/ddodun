@@ -234,13 +234,14 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
           }
         }
 
-        // Check for result data
-        if (detail.sets) {
+        // Check for result data — result_type is the authoritative mode
+        if (detail.result_type) {
+          rOpen[log.template_id] = true
+          rMode[log.template_id] = detail.result_type as InputMode
+        } else if (detail.sets) {
+          // Legacy: WT saved without result_type
           rOpen[log.template_id] = true
           rMode[log.template_id] = 'weight'
-        } else if (detail.result_type) {
-          rOpen[log.template_id] = true
-          rMode[log.template_id] = detail.result_type as ResultType
         }
         if (detail.emom) rOpen[log.template_id] = true
         if (log.memo) {
@@ -421,7 +422,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
 
   function handleWeightSetsChangeFor(anchorId: string, data: WeightSetsData) {
     const existing = getLog(anchorId)
-    const detail = { ...parseDetail(existing?.sets_detail), weight_unit: data.weight_unit, sets: data.sets }
+    const detail = { ...parseDetail(existing?.sets_detail), weight_unit: data.weight_unit, sets: data.sets, result_type: 'weight' }
     setLocalLogs(prev => ({
       ...prev,
       [anchorId]: { ...(prev[anchorId] || {} as WorkoutLog), sets_detail: detail }
@@ -923,7 +924,17 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                         {([['weight', 'WT'], ['rounds', 'Rounds'], ['reps', 'Reps'], ['cal', 'Cal'], ['time', 'Time']] as const).map(([val, label]) => (
                           <button
                             key={val}
-                            onClick={() => setResultMode(prev => ({ ...prev, [gAnchor]: val as InputMode }))}
+                            onClick={() => {
+                              setResultMode(prev => ({ ...prev, [gAnchor]: val as InputMode }))
+                              // Persist mode switch so it restores correctly
+                              const existing = getLog(gAnchor)
+                              const detail = { ...parseDetail(existing?.sets_detail), result_type: val }
+                              setLocalLogs(prev => ({
+                                ...prev,
+                                [gAnchor]: { ...(prev[gAnchor] || {} as WorkoutLog), sets_detail: detail }
+                              }))
+                              debouncedSave(gAnchor, section, { sets_detail: detail as unknown })
+                            }}
                             className={`text-[11px] font-semibold transition-colors ${
                               gMode === val ? 'text-accent' : 'text-text-secondary/30'
                             }`}
