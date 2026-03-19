@@ -204,6 +204,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
   const [units, setUnits] = useState<Record<string, 'lb' | 'kg'>>({})
   const debounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const pendingSavesRef = useRef<Record<string, () => void>>({})
+  const localLogsRef = useRef<Record<string, WorkoutLog>>({})
 
   const templateGroups = computeGroups(templates)
 
@@ -249,10 +250,9 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
       }
     }
 
-    setLocalLogs(map)
-
     if (!initializedRef.current) {
-      // First load: set all UI states from persisted data
+      // First load: set all states from persisted data
+      setLocalLogs(map)
       setWeightOpen(wOpen)
       setUnits(unitMap)
       setResultOpen(rOpen)
@@ -261,7 +261,17 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
       setSectionMemo(memos)
       initializedRef.current = true
     } else {
-      // Subsequent updates: merge without closing user-opened panels
+      // Subsequent updates: merge without overwriting in-flight local changes
+      setLocalLogs(prev => {
+        const next = { ...prev }
+        for (const [tid, log] of Object.entries(map)) {
+          // Only update from server if no pending save for this template
+          if (!pendingSavesRef.current[tid]) {
+            next[tid] = log
+          }
+        }
+        return next
+      })
       setWeightOpen(prev => ({ ...prev, ...wOpen }))
       setUnits(prev => ({ ...prev, ...unitMap }))
       setResultOpen(prev => ({ ...prev, ...rOpen }))
@@ -271,12 +281,15 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
     }
   }, [logs])
 
+  // Keep ref in sync for use in saveLog (avoids stale closure)
+  localLogsRef.current = localLogs
+
   function getLog(templateId: string): WorkoutLog | null {
     return localLogs[templateId] || logs.find(l => l.template_id === templateId) || null
   }
 
   const saveLog = useCallback(async (templateId: string, sec: string, updates: Partial<WorkoutLog>) => {
-    const existing = localLogs[templateId] || logs.find(l => l.template_id === templateId)
+    const existing = localLogsRef.current[templateId] || logs.find(l => l.template_id === templateId)
     try {
       const saved = await upsertLog(userId, {
         ...(existing?.id ? { id: existing.id } : {}),
@@ -293,7 +306,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
     } catch (err) {
       console.error('Failed to save log:', err)
     }
-  }, [localLogs, logs, date, onLogUpdate])
+  }, [logs, date, onLogUpdate])
 
   function debouncedSave(templateId: string, sec: string, updates: Partial<WorkoutLog>) {
     if (debounceRef.current[templateId]) clearTimeout(debounceRef.current[templateId])
@@ -514,7 +527,23 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                 const text = templates.map(t => {
                   const parts: string[] = []
                   if (t.title) parts.push(t.title)
-                  if (t.description) parts.push(t.description)
+                  // If EMOM template with logged entries, format as MIN lines
+                  if (isEmomType(t)) {
+                    const log = getLog(t.id)
+                    const detail = parseDetail(log?.sets_detail)
+                    if (Array.isArray(detail.emom) && detail.emom.length > 0) {
+                      detail.emom.forEach((e: { name?: string; value?: number | null; measure?: string; weight?: number | null; weight_unit?: string }, i: number) => {
+                        const minNum = i + 1
+                        let line = `${minNum}MIN: `
+                        if (e.value != null) line += e.measure === 'cal' ? `${e.value}cal ` : `${e.value} `
+                        line += e.name || ''
+                        if (e.weight != null) line += ` @${e.weight}${e.weight_unit || 'lb'}`
+                        parts.push(line.trimEnd())
+                      })
+                    }
+                  } else {
+                    if (t.description) parts.push(t.description)
+                  }
                   return parts.join('\n')
                 }).join('\n\n')
                 navigator.clipboard.writeText(text)

@@ -9,7 +9,7 @@ import Calculator from '@/components/workout/Calculator'
 import { getTemplatesByDate, getTemplateDatesByRange, type WorkoutTemplate } from '@/lib/api/workout-templates'
 import { getLogsByDate, type WorkoutLog } from '@/lib/api/workout-logs'
 import { getCompetitionByDate, type Competition } from '@/lib/api/competitions'
-import { getToday, getWeekDays, DAY_LABELS } from '@/lib/date-utils'
+import { getToday, getWeekDays, WEEK_DAY_LABELS } from '@/lib/date-utils'
 import { getLoggedInUser } from '@/lib/auth'
 
 function WorkoutContent() {
@@ -181,7 +181,7 @@ function WorkoutContent() {
                   <span className={`text-[10px] ${
                     isSelected ? 'text-white/70' : i === 5 ? 'text-success/60' : i === 6 ? 'text-danger/60' : 'text-text-secondary'
                   }`}>
-                    {DAY_LABELS[i]}
+                    {WEEK_DAY_LABELS[i]}
                   </span>
                   <span className={`text-sm font-bold ${
                     isSelected ? 'text-white' : isToday ? 'text-accent' : ''

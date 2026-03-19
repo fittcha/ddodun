@@ -45,18 +45,17 @@ function formatResultText(log: WorkoutLog): string {
     if (parts.length > 0) return parts.join(' / ')
   }
 
-  // EMOM data
+  // EMOM data — formatted as MIN lines
   if (Array.isArray(detail.emom) && detail.emom.length > 0) {
-    const parts = detail.emom
-      .filter((e: { value?: number | null }) => e.value != null)
-      .map((e: { name?: string; value?: number; measure?: string; weight?: number; weight_unit?: string }) => {
-        let s = ''
-        if (e.name) s += `${e.name}: `
-        s += `${e.value}${e.measure === 'reps' ? 'reps' : e.measure === 'cal' ? 'cal' : ''}`
-        if (e.weight) s += ` @${e.weight}${e.weight_unit || 'lb'}`
-        return s
-      })
-    if (parts.length > 0) return parts.join(', ')
+    const lines = detail.emom.map((e: { name?: string; value?: number | null; measure?: string; weight?: number | null; weight_unit?: string }, i: number) => {
+      const minNum = i + 1
+      let line = `${minNum}MIN: `
+      if (e.value != null) line += e.measure === 'cal' ? `${e.value}cal ` : `${e.value} `
+      line += e.name || ''
+      if (e.weight != null) line += ` @${e.weight}${e.weight_unit || 'lb'}`
+      return line.trimEnd()
+    })
+    if (lines.length > 0) return '\n' + lines.join('\n')
   }
 
   // Multi-set results
@@ -140,7 +139,14 @@ function generateSummaryText(templates: WorkoutTemplate[], logs: WorkoutLog[]): 
 
       const log = logMap.get(t.id)!
       const result = formatResultText(log)
-      if (result) lines.push(`→ ${result}`)
+      if (result) {
+        if (result.startsWith('\n')) {
+          // Multi-line result (EMOM) — append directly without → prefix
+          lines.push(result.trimStart())
+        } else {
+          lines.push(`→ ${result}`)
+        }
+      }
       if (log.memo) lines.push(`📝 ${log.memo}`)
     })
 

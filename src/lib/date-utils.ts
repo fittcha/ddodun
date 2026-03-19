@@ -1,6 +1,9 @@
+/** 캘린더용 (일-토) */
 const DAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
+/** 운동 탭 주간 스트립용 (월-일, getWeekDays 순서와 일치) */
+const WEEK_DAY_LABELS = ['월', '화', '수', '목', '금', '토', '일']
 
-export { DAY_LABELS }
+export { DAY_LABELS, WEEK_DAY_LABELS }
 
 export function getMonthDays(year: number, month: number) {
   const firstDay = new Date(year, month - 1, 1)
