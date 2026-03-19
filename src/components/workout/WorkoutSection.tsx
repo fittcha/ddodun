@@ -234,18 +234,18 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
           }
         }
 
-        // Check for result data — result_type is the authoritative mode
+        // Restore result mode (but not open state — that's explicit)
         if (detail.result_type) {
-          rOpen[log.template_id] = true
           rMode[log.template_id] = detail.result_type as InputMode
         } else if (detail.sets) {
-          // Legacy: WT saved without result_type
-          rOpen[log.template_id] = true
           rMode[log.template_id] = 'weight'
         }
-        if (detail.emom) rOpen[log.template_id] = true
-        if (log.memo) {
+        // Restore open/closed state from persisted flags
+        if (detail._result_open === true) rOpen[log.template_id] = true
+        if (detail._memo_open === true) {
           mOpen[log.template_id] = true
+        }
+        if (log.memo) {
           memos[log.template_id] = log.memo
         }
       }
@@ -486,6 +486,36 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
     debouncedSave(anchorId, section, { memo: value || null })
   }
 
+  // === Toggle result/memo panels with persistence ===
+  function toggleResultPanel(anchorId: string) {
+    setResultOpen(prev => {
+      const next = !prev[anchorId]
+      // Persist open/closed flag
+      const existing = getLog(anchorId)
+      const detail = { ...parseDetail(existing?.sets_detail), _result_open: next }
+      setLocalLogs(p => ({
+        ...p,
+        [anchorId]: { ...(p[anchorId] || {} as WorkoutLog), sets_detail: detail }
+      }))
+      debouncedSave(anchorId, section, { sets_detail: detail as unknown })
+      return { ...prev, [anchorId]: next }
+    })
+  }
+
+  function toggleMemoPanel(anchorId: string) {
+    setMemoOpen(prev => {
+      const next = !prev[anchorId]
+      const existing = getLog(anchorId)
+      const detail = { ...parseDetail(existing?.sets_detail), _memo_open: next }
+      setLocalLogs(p => ({
+        ...p,
+        [anchorId]: { ...(p[anchorId] || {} as WorkoutLog), sets_detail: detail }
+      }))
+      debouncedSave(anchorId, section, { sets_detail: detail as unknown })
+      return { ...prev, [anchorId]: next }
+    })
+  }
+
   const allCompleted = templates.length > 0 && templates.every(t => getLog(t.id)?.completed)
   const someCompleted = templates.some(t => getLog(t.id)?.completed)
   const sectionLabel = extractSectionLabel(templates)
@@ -558,7 +588,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
               </svg>
             </button>
             <button
-              onClick={() => setResultOpen(prev => ({ ...prev, [firstGroupAnchor]: !prev[firstGroupAnchor] }))}
+              onClick={() => toggleResultPanel(firstGroupAnchor)}
               className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
                 firstGResultOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/30 bg-surface'
               }`}
@@ -569,7 +599,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
               </svg>
             </button>
             <button
-              onClick={() => setMemoOpen(prev => ({ ...prev, [firstGroupAnchor]: !prev[firstGroupAnchor] }))}
+              onClick={() => toggleMemoPanel(firstGroupAnchor)}
               className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
                 firstGMemoOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/30 bg-surface'
               }`}
@@ -612,7 +642,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                     <p className="text-xs font-medium text-text-secondary">{group.separatorData.setInfo}</p>
                     <div className="ml-auto flex items-center gap-1">
                       <button
-                        onClick={() => setResultOpen(prev => ({ ...prev, [gAnchor]: !prev[gAnchor] }))}
+                        onClick={() => toggleResultPanel(gAnchor)}
                         className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
                           gResultOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/30 bg-surface'
                         }`}
@@ -623,7 +653,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                         </svg>
                       </button>
                       <button
-                        onClick={() => setMemoOpen(prev => ({ ...prev, [gAnchor]: !prev[gAnchor] }))}
+                        onClick={() => toggleMemoPanel(gAnchor)}
                         className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
                           gMemoOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/30 bg-surface'
                         }`}
@@ -640,7 +670,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                 {!group.separatorData.setInfo && (
                   <div className="px-4 py-1.5 bg-background border-t border-border flex items-center justify-end gap-1">
                     <button
-                      onClick={() => setResultOpen(prev => ({ ...prev, [gAnchor]: !prev[gAnchor] }))}
+                      onClick={() => toggleResultPanel(gAnchor)}
                       className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
                         gResultOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/30 bg-surface'
                       }`}
@@ -651,7 +681,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                       </svg>
                     </button>
                     <button
-                      onClick={() => setMemoOpen(prev => ({ ...prev, [gAnchor]: !prev[gAnchor] }))}
+                      onClick={() => toggleMemoPanel(gAnchor)}
                       className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
                         gMemoOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/30 bg-surface'
                       }`}
@@ -669,7 +699,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
             {groupIdx > 0 && !group.separatorData && (
               <div className="px-4 py-1.5 bg-background border-t border-border flex items-center justify-end gap-1">
                 <button
-                  onClick={() => setResultOpen(prev => ({ ...prev, [gAnchor]: !prev[gAnchor] }))}
+                  onClick={() => toggleResultPanel(gAnchor)}
                   className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
                     gResultOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/30 bg-surface'
                   }`}
@@ -680,7 +710,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                   </svg>
                 </button>
                 <button
-                  onClick={() => setMemoOpen(prev => ({ ...prev, [gAnchor]: !prev[gAnchor] }))}
+                  onClick={() => toggleMemoPanel(gAnchor)}
                   className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors ${
                     gMemoOpen ? 'bg-accent border-accent text-white' : 'border-text-secondary/30 bg-surface'
                   }`}
