@@ -258,7 +258,7 @@ function WorkoutContent() {
       )}
 
       {/* Workout sections */}
-      <div className={`transition-opacity duration-150 ${loading ? 'opacity-40' : ''}`}>
+      <div className={`space-y-4 transition-opacity duration-150 ${loading ? 'opacity-40' : ''}`}>
       {sections.length > 0 ? (
         sections.map(({ section, templates: sectionTemplates }) => (
           <WorkoutSection
