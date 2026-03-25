@@ -237,11 +237,13 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
         if (detail.weight_unit) unitMap[log.template_id] = detail.weight_unit as 'lb' | 'kg'
         if (detail.weight != null) wOpen[log.template_id] = true
 
-        // Restore exercise-level weight buttons (for section-title templates)
+        // Restore exercise-level weight buttons and units (for section-title templates)
         if (detail.exercise_weights && typeof detail.exercise_weights === 'object') {
-          const ew = detail.exercise_weights as Record<string, { weight?: number | null }>
+          const ew = detail.exercise_weights as Record<string, { weight?: number | null; unit?: 'lb' | 'kg' }>
           for (const [idx, v] of Object.entries(ew)) {
-            if (v.weight != null) wOpen[`${log.template_id}_${idx}`] = true
+            const exKey = `${log.template_id}_${idx}`
+            if (v.weight != null) wOpen[exKey] = true
+            if (v.unit) unitMap[exKey] = v.unit
           }
         }
 
@@ -367,8 +369,8 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
     return (detail.weight as number) ?? null
   }
 
-  function getUnit(templateId: string): 'lb' | 'kg' {
-    return units[templateId] || 'lb'
+  function getUnit(key: string): 'lb' | 'kg' {
+    return units[key] || 'lb'
   }
 
   function setWeight(templateId: string, sec: string, weight: number | null) {
@@ -396,10 +398,11 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
   }
 
   function setExWeight(templateId: string, sec: string, exIdx: number, weight: number | null) {
+    const exKey = `${templateId}_${exIdx}`
     const existing = getLog(templateId)
     const detail = parseDetail(existing?.sets_detail)
     const ew = (detail.exercise_weights as Record<string, unknown>) || {}
-    ew[String(exIdx)] = { weight, unit: getUnit(templateId) }
+    ew[String(exIdx)] = { weight, unit: getUnit(exKey) }
     const next = { ...detail, exercise_weights: ew }
     setLocalLogs(prev => ({
       ...prev,
@@ -414,12 +417,23 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
     setExWeight(templateId, sec, exIdx, next === 0 ? null : next)
   }
 
-  function toggleUnit(templateId: string, sec: string) {
-    const next = getUnit(templateId) === 'lb' ? 'kg' : 'lb'
-    setUnits(prev => ({ ...prev, [templateId]: next }))
+  function toggleUnit(templateId: string, sec: string, exIdx?: number) {
+    const key = exIdx != null ? `${templateId}_${exIdx}` : templateId
+    const next = getUnit(key) === 'lb' ? 'kg' : 'lb'
+    setUnits(prev => ({ ...prev, [key]: next }))
     const existing = getLog(templateId)
-    const detail = { ...parseDetail(existing?.sets_detail), weight_unit: next }
-    debouncedSave(templateId, sec, { sets_detail: detail as unknown })
+    if (exIdx != null) {
+      // Per-exercise unit: update inside exercise_weights
+      const detail = parseDetail(existing?.sets_detail)
+      const ew = (detail.exercise_weights as Record<string, Record<string, unknown>>) || {}
+      const prev = ew[String(exIdx)] || {}
+      ew[String(exIdx)] = { ...prev, unit: next }
+      const nextDetail = { ...detail, exercise_weights: ew }
+      debouncedSave(templateId, sec, { sets_detail: nextDetail as unknown })
+    } else {
+      const detail = { ...parseDetail(existing?.sets_detail), weight_unit: next }
+      debouncedSave(templateId, sec, { sets_detail: detail as unknown })
+    }
   }
 
   // === Per-group: weight sets (climbing) ===
@@ -791,7 +805,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                             const curIdx = g.exercise.idx
                             const exKey = `${template.id}_${curIdx}`
                             const exWeight = getExWeight(template.id, curIdx)
-                            const exUnit = getUnit(template.id)
+                            const exUnit = getUnit(exKey)
                             const exOpen = !!weightOpen[exKey]
                             return (
                               <div key={i} className={`pl-6 pr-4 py-2 ${curIdx > 0 ? 'border-t border-border' : ''}`}>
@@ -809,7 +823,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                                     unit={exUnit}
                                     onAdjust={(delta) => adjustExWeight(template.id, template.section, curIdx, delta)}
                                     onSet={(v) => setExWeight(template.id, template.section, curIdx, v)}
-                                    onToggleUnit={() => toggleUnit(template.id, template.section)}
+                                    onToggleUnit={() => toggleUnit(template.id, template.section, curIdx)}
                                   />
                                 </div>
                                 {g.notes.length > 0 && (
@@ -909,7 +923,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                             const curIdx = g.exercise.idx
                             const exKey = `${template.id}_${curIdx}`
                             const exWeight = getExWeight(template.id, curIdx)
-                            const exUnit = getUnit(template.id)
+                            const exUnit = getUnit(exKey)
                             const exOpen = !!weightOpen[exKey]
                             return (
                               <div key={i} className={`pl-6 pr-4 py-2 ${curIdx > 0 ? 'border-t border-border' : ''}`}>
@@ -927,7 +941,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                                     unit={exUnit}
                                     onAdjust={(delta) => adjustExWeight(template.id, template.section, curIdx, delta)}
                                     onSet={(v) => setExWeight(template.id, template.section, curIdx, v)}
-                                    onToggleUnit={() => toggleUnit(template.id, template.section)}
+                                    onToggleUnit={() => toggleUnit(template.id, template.section, curIdx)}
                                   />
                                 </div>
                                 {g.notes.length > 0 && (
