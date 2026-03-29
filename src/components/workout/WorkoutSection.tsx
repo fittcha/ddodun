@@ -153,12 +153,13 @@ function computeGroups(templates: WorkoutTemplate[]): TemplateGroup[] {
     const showSeparator = idx > 0 && (parsed.setInfo || hasLeadingRest)
 
     if (showSeparator && current.length > 0) {
-      // Finalize previous group
+      // Finalize previous group (preserve its separator data if any)
+      const prevSep = (current as unknown as { _sep: TemplateGroup['separatorData'] })._sep || null
       groups.push({
         templates: current,
         anchorId: current[0].id,
         hasEmom: current.some(isEmomType),
-        separatorData: null,
+        separatorData: prevSep,
       })
 
       // Compute separator data for this new group
@@ -169,17 +170,6 @@ function computeGroups(templates: WorkoutTemplate[]): TemplateGroup[] {
         ? parsed.orderedLines[0].text : null
 
       current = [templates[idx]]
-      // We'll store separator data on this new group
-      groups.push({
-        templates: [], // placeholder, will be filled
-        anchorId: templates[idx].id,
-        hasEmom: false,
-        separatorData: { restNote, leadingRest, setInfo: parsed.setInfo },
-      })
-      // Remove the placeholder and start properly
-      groups.pop()
-      current = [templates[idx]]
-      // Store separator info to apply when we finalize this group
       ;(current as unknown as { _sep: TemplateGroup['separatorData'] })._sep = { restNote, leadingRest, setInfo: parsed.setInfo }
     } else {
       current.push(templates[idx])
