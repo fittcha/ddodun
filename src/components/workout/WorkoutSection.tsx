@@ -149,7 +149,8 @@ function computeGroups(templates: WorkoutTemplate[]): TemplateGroup[] {
 
   for (let idx = 0; idx < templates.length; idx++) {
     const parsed = parseDescription(templates[idx].description)
-    const showSeparator = idx > 0 && parsed.setInfo
+    const hasLeadingRest = parsed.orderedLines.length > 0 && parsed.orderedLines[0].type === 'note' && /^Rest\s+/i.test(parsed.orderedLines[0].text)
+    const showSeparator = idx > 0 && (parsed.setInfo || hasLeadingRest)
 
     if (showSeparator && current.length > 0) {
       // Finalize previous group
