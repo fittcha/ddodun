@@ -164,7 +164,7 @@ function computeGroups(templates: WorkoutTemplate[]): TemplateGroup[] {
       const prevTemplate = templates[idx - 1]
       const prevParsed = parseDescription(prevTemplate.description)
       const restNote = prevParsed.notes.find(n => /rest\s+as\s+needed/i.test(n)) || null
-      const leadingRest = parsed.orderedLines.length > 0 && parsed.orderedLines[0].type === 'note' && /^Rest\s+\d/i.test(parsed.orderedLines[0].text)
+      const leadingRest = parsed.orderedLines.length > 0 && parsed.orderedLines[0].type === 'note' && /^Rest\s+/i.test(parsed.orderedLines[0].text)
         ? parsed.orderedLines[0].text : null
 
       current = [templates[idx]]
@@ -766,7 +766,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
               const unit = getUnit(template.id)
 
               const titleIsSection = isSectionTitle(template.title)
-              const leadingRest = parsed.orderedLines.length > 0 && parsed.orderedLines[0].type === 'note' && /^Rest\s+\d/i.test(parsed.orderedLines[0].text)
+              const leadingRest = parsed.orderedLines.length > 0 && parsed.orderedLines[0].type === 'note' && /^Rest\s+/i.test(parsed.orderedLines[0].text)
                 ? parsed.orderedLines[0].text : null
 
               return (
