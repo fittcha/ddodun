@@ -59,7 +59,7 @@ function parseDescription(desc: string | null): {
       orderedLines.push({ text: line, type: 'subheader' })
     } else if (
       line.startsWith('*') || line.startsWith('@') || line.startsWith('- Rest')
-      || /^Rest\s+\d/i.test(line)
+      || /^Rest\s+/i.test(line) || line === '+'
     ) {
       notes.push(line)
       orderedLines.push({ text: line, type: 'note' })
