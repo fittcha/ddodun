@@ -773,7 +773,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                     /* Section-level title (AMRAP, For Time, etc.) — render lines in order */
                     <div>
                       {(() => {
-                        let lines = parsed.orderedLines.filter(l => !/rest\s+as\s+needed/i.test(l.text))
+                        let lines = [...parsed.orderedLines]
                         if (leadingRest) lines = lines.filter(l => l.text !== leadingRest)
                         // Group: each exercise + following notes together
                         const groups: { exercise?: { text: string; idx: number }; notes: string[]; subheader?: string }[] = []
@@ -868,7 +868,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                         />
                       </div>
                       {(() => {
-                        const lines = parsed.orderedLines.filter(l => !/rest\s+as\s+needed/i.test(l.text))
+                        const lines = [...parsed.orderedLines]
                         if (lines.length === 0) return null
                         return (
                           <div className={`pl-6 pr-4 pb-2 space-y-0.5 ${completed ? 'opacity-50' : ''}`}>
@@ -885,7 +885,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                     /* No title — render lines in order, exercises get weight buttons, notes stay inline */
                     <div>
                       {(() => {
-                        let lines = parsed.orderedLines.filter(l => !/rest\s+as\s+needed/i.test(l.text))
+                        let lines = [...parsed.orderedLines]
                         if (leadingRest) lines = lines.filter(l => l.text !== leadingRest)
                         if (lines.length === 0 && parsed.setInfo) {
                           return (
