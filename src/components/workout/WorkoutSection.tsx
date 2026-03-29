@@ -62,6 +62,8 @@ function parseDescription(desc: string | null): {
     } else if (
       line.startsWith('*') || line.startsWith('@') || line.startsWith('- Rest')
       || /^Rest\s+/i.test(line) || line === '+'
+      || /^\d+\s*x\s*\(/.test(line)
+      || /^\d+(-\d+)+\s*,/.test(line)
     ) {
       notes.push(line)
       orderedLines.push({ text: line, type: 'note' })
