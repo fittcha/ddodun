@@ -7,6 +7,7 @@ import { upsertLog } from '@/lib/api/workout-logs'
 import WeightSetsInput, { type WeightSetsData } from './WeightSetsInput'
 import ResultInput, { type ResultData, type ResultType } from './ResultInput'
 import EmomBuilder, { type EmomData } from './EmomBuilder'
+import ExerciseSearchModal from './ExerciseSearchModal'
 
 type InputMode = 'weight' | ResultType  // 'weight' | 'rounds' | 'reps' | 'time'
 
@@ -202,6 +203,23 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
   const debounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const pendingSavesRef = useRef<Record<string, () => void>>({})
   const localLogsRef = useRef<Record<string, WorkoutLog>>({})
+
+  // Long-press exercise search
+  const [searchExercise, setSearchExercise] = useState<string | null>(null)
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleExerciseTouchStart = useCallback((name: string) => {
+    longPressTimer.current = setTimeout(() => {
+      setSearchExercise(name)
+    }, 1000)
+  }, [])
+
+  const handleExerciseTouchEnd = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+      longPressTimer.current = null
+    }
+  }, [])
 
   // Memoize expensive parsing — only recompute when templates change
   const parsedDescriptions = useMemo(() => {
@@ -805,7 +823,13 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                             return (
                               <div key={i} className={`pl-6 pr-4 py-2 ${curIdx > 0 ? 'border-t border-border' : ''}`}>
                                 <div className="flex items-center gap-2">
-                                  <p className={`flex-1 min-w-0 text-sm ${completed ? 'line-through opacity-50' : ''}`}>{g.exercise.text}</p>
+                                  <p
+                                    className={`flex-1 min-w-0 text-sm select-none ${completed ? 'line-through opacity-50' : ''}`}
+                                    onTouchStart={() => handleExerciseTouchStart(g.exercise!.text)}
+                                    onTouchEnd={handleExerciseTouchEnd}
+                                    onTouchMove={handleExerciseTouchEnd}
+                                    onContextMenu={(e) => e.preventDefault()}
+                                  >{g.exercise.text}</p>
                                   <WeightButton
                                     weightKey={exKey}
                                     isOpen={exOpen}
@@ -846,7 +870,13 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                     /* Template with title — title is exercise, description is detail text */
                     <div>
                       <div className="pl-6 pr-4 py-2 flex items-center gap-2">
-                        <p className={`flex-1 min-w-0 text-sm ${completed ? 'line-through opacity-50' : ''}`}>{template.title}</p>
+                        <p
+                          className={`flex-1 min-w-0 text-sm select-none ${completed ? 'line-through opacity-50' : ''}`}
+                          onTouchStart={() => handleExerciseTouchStart(template.title!)}
+                          onTouchEnd={handleExerciseTouchEnd}
+                          onTouchMove={handleExerciseTouchEnd}
+                          onContextMenu={(e) => e.preventDefault()}
+                        >{template.title}</p>
                         <WeightButton
                           weightKey={template.id}
                           isOpen={!!weightOpen[template.id]}
@@ -923,7 +953,13 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                             return (
                               <div key={i} className={`pl-6 pr-4 py-2 ${curIdx > 0 ? 'border-t border-border' : ''}`}>
                                 <div className="flex items-center gap-2">
-                                  <p className={`flex-1 min-w-0 text-sm ${completed ? 'line-through opacity-50' : ''}`}>{g.exercise.text}</p>
+                                  <p
+                                    className={`flex-1 min-w-0 text-sm select-none ${completed ? 'line-through opacity-50' : ''}`}
+                                    onTouchStart={() => handleExerciseTouchStart(g.exercise!.text)}
+                                    onTouchEnd={handleExerciseTouchEnd}
+                                    onTouchMove={handleExerciseTouchEnd}
+                                    onContextMenu={(e) => e.preventDefault()}
+                                  >{g.exercise.text}</p>
                                   <WeightButton
                                     weightKey={exKey}
                                     isOpen={exOpen}
@@ -1034,6 +1070,11 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
           <span className="bg-foreground/80 text-white text-xs px-3 py-1.5 rounded-full">복사됨</span>
         </div>
       )}
+      {/* Exercise search modal */}
+      <ExerciseSearchModal
+        exerciseName={searchExercise}
+        onClose={() => setSearchExercise(null)}
+      />
     </div>
   )
 }
