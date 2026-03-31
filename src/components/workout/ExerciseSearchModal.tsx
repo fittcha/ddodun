@@ -9,7 +9,10 @@ interface ExerciseSearchModalProps {
 
 /** Strip leading reps/numbers from exercise name: "30 Hollow Rock" → "Hollow Rock" */
 function stripReps(name: string): string {
-  return name.replace(/^[\d\/:\s\-]+(m|ft|km|mi)?\s*/i, '').trim() || name
+  return name
+    .replace(/^[\d\/:\s\-]+(m|ft|km|mi)?\s*/i, '')
+    .replace(/^max\s+(reps?|cal|cals?|calories?|distance|effort)\s*/i, '')
+    .trim() || name
 }
 
 export default function ExerciseSearchModal({ exerciseName, onClose }: ExerciseSearchModalProps) {
