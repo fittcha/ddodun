@@ -9,7 +9,7 @@ interface ExerciseSearchModalProps {
 
 /** Strip leading reps/numbers from exercise name: "30 Hollow Rock" → "Hollow Rock" */
 function stripReps(name: string): string {
-  return name.replace(/^[\d\/\s\-]+/, '').trim() || name
+  return name.replace(/^[\d\/:\s\-]+/, '').trim() || name
 }
 
 export default function ExerciseSearchModal({ exerciseName, onClose }: ExerciseSearchModalProps) {
