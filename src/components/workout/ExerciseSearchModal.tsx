@@ -36,7 +36,7 @@ export default function ExerciseSearchModal({ exerciseName, onClose }: ExerciseS
 
         <div className="flex gap-2">
           <a
-            href={`https://www.youtube.com/results?search_query=${query}${query}`}
+            href={`https://www.youtube.com/results?search_query=${query}${query}+exercise+form`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg border border-red-500 text-red-500 font-medium text-sm active:scale-95 transition-transform"
@@ -45,7 +45,7 @@ export default function ExerciseSearchModal({ exerciseName, onClose }: ExerciseS
             YouTube
           </a>
           <a
-            href={`https://www.google.com/search?q=${query}${query}`}
+            href={`https://www.google.com/search?q=${query}${query}+exercise+form`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg border border-blue-500 text-blue-500 font-medium text-sm active:scale-95 transition-transform"
