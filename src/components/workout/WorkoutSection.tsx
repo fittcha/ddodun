@@ -56,6 +56,8 @@ function parseDescription(desc: string | null): {
       setInfo = line
     } else if (!setInfo && /^EMOM\s+\d+/i.test(line)) {
       setInfo = line
+    } else if (!setInfo && /^accumulate\s+/i.test(line)) {
+      setInfo = line
     } else if (setInfo && exercises.length === 0 && line.startsWith('(')) {
       setInfo = `${setInfo} · ${line}`
     } else if (/^\d+(-\d+)+$/.test(line) || /^\d+\s+rounds?\s+for/i.test(line)) {
