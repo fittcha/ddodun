@@ -7,41 +7,47 @@ interface ExerciseSearchModalProps {
   onClose: () => void
 }
 
+/** Strip leading reps/numbers from exercise name: "30 Hollow Rock" → "Hollow Rock" */
+function stripReps(name: string): string {
+  return name.replace(/^\d+[\s\-]*/, '').trim() || name
+}
+
 export default function ExerciseSearchModal({ exerciseName, onClose }: ExerciseSearchModalProps) {
   if (!exerciseName) return null
 
-  const query = encodeURIComponent(exerciseName)
+  const cleanName = stripReps(exerciseName)
+  const query = encodeURIComponent(cleanName)
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-lg bg-surface rounded-t-2xl p-6 pb-8 animate-slide-up">
+      <div className="relative w-[280px] bg-surface rounded-2xl p-5 shadow-lg">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1 text-text-secondary"
+          className="absolute top-3 right-3 p-1 text-text-secondary"
         >
-          <X size={20} />
+          <X size={18} />
         </button>
 
-        <h3 className="text-base font-semibold mb-6 pr-8">{exerciseName}</h3>
+        <h3 className="text-sm font-semibold mb-4 pr-6">{cleanName}</h3>
 
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <a
             href={`https://www.youtube.com/results?search_query=${query}+exercise+form`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-red-600 text-white font-medium text-sm active:scale-95 transition-transform"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg border border-red-500 text-red-500 font-medium text-sm active:scale-95 transition-transform"
           >
-            <Youtube size={20} />
+            <Youtube size={18} />
             YouTube
           </a>
           <a
             href={`https://www.google.com/search?q=${query}+exercise+form`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-600 text-white font-medium text-sm active:scale-95 transition-transform"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg border border-blue-500 text-blue-500 font-medium text-sm active:scale-95 transition-transform"
           >
-            <Search size={20} />
+            <Search size={18} />
             Google
           </a>
         </div>
