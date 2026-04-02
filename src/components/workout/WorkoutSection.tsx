@@ -129,7 +129,7 @@ function WeightButton({ isOpen, onOpen, onClose, weight, unit, onAdjust, onSet, 
     )
   }
   return (
-    <button onClick={onOpen} className="w-5 h-5 rounded-full border-[0.5px] border-text-secondary/30 text-[8px] font-bold text-text-secondary flex-shrink-0 flex items-center justify-center">
+    <button onClick={onOpen} className="w-5 h-5 rounded-full border border-text-secondary/15 text-[8px] font-bold text-text-secondary flex-shrink-0 flex items-center justify-center">
       {unit}
     </button>
   )
