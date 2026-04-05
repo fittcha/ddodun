@@ -48,7 +48,7 @@ function parseDescription(desc: string | null): {
   const orderedLines: { text: string; type: LineType }[] = []
 
   for (const line of lines) {
-    if (!setInfo && /^\d+\s*(sets?|x\s*\d+)/i.test(line)) {
+    if (!setInfo && /^\d+\s*(sets?|x\s*(\d+|Max\b))/i.test(line)) {
       setInfo = line
     } else if (!setInfo && /^every\s+/i.test(line)) {
       setInfo = line
