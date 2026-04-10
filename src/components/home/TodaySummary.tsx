@@ -51,13 +51,17 @@ function formatResultOnly(detail: Record<string, unknown>): string {
 function formatResultText(log: WorkoutLog): string {
   const detail = parseDetail(log.sets_detail)
 
-  // Weight sets (climbing)
+  // Weight sets (climbing) — may also have result data on same log (group anchor)
   if (Array.isArray(detail.sets) && detail.sets.length > 0) {
     const unit = (detail.weight_unit as string) || 'lb'
     const weights = detail.sets
       .map((s: { weight?: number | null }) => s.weight != null ? `${s.weight}${unit}` : null)
       .filter(Boolean)
-    if (weights.length > 0) return weights.join(' - ')
+    if (weights.length > 0) {
+      const weightStr = weights.join(' - ')
+      const resultStr = formatResultOnly(detail)
+      return resultStr ? `${weightStr}\n→ ${resultStr}` : weightStr
+    }
   }
 
   // Single weight — may also have result data (e.g. weight + reps)
@@ -75,7 +79,11 @@ function formatResultText(log: WorkoutLog): string {
     const parts = Object.values(ew)
       .filter(v => v.weight != null)
       .map(v => `${v.weight}${v.unit || 'lb'}`)
-    if (parts.length > 0) return parts.join(' / ')
+    if (parts.length > 0) {
+      const weightStr = parts.join(' / ')
+      const resultStr = formatResultOnly(detail)
+      return resultStr ? `${weightStr}\n→ ${resultStr}` : weightStr
+    }
   }
 
   // EMOM data — formatted as MIN lines
