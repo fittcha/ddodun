@@ -36,31 +36,46 @@ export default function HomePage() {
   const todayStr = getToday()
 
   const loadData = useCallback(async () => {
-    try {
-      const [tDates, lDates, comps, tTemplates, tLogs] = await Promise.all([
-        getTemplateDatesByMonth(year, month),
-        getLogDatesByMonth(userId, year, month),
-        getCompetitionsByMonth(userId, year, month),
-        getTemplatesByDate(todayStr),
-        getLogsByDate(userId, todayStr),
-      ])
+    if (!userId) return
+
+    // Fetch calendar data and today's summary independently
+    const calendarPromise = Promise.all([
+      getTemplateDatesByMonth(year, month),
+      getLogDatesByMonth(userId, year, month),
+      getCompetitionsByMonth(userId, year, month),
+    ]).then(([tDates, lDates, comps]) => {
       setTemplateDates(new Set(tDates))
       setLogDates(new Set(lDates))
       setCompetitions(comps)
       setCompetitionDates(new Set(comps.map(c => c.date)))
+    }).catch(err => {
+      console.error('Failed to load calendar data:', err)
+    })
+
+    const todayPromise = Promise.all([
+      getTemplatesByDate(todayStr),
+      getLogsByDate(userId, todayStr),
+    ]).then(([tTemplates, tLogs]) => {
       setTodayTemplates(tTemplates)
       setTodayLogs(tLogs)
-    } catch (err) {
-      console.error('Failed to load calendar data:', err)
-      setTemplateDates(new Set())
-      setLogDates(new Set())
-      setCompetitions([])
-      setCompetitionDates(new Set())
-    }
+    }).catch(err => {
+      console.error('Failed to load today summary:', err)
+    })
+
+    await Promise.all([calendarPromise, todayPromise])
   }, [year, month, userId, todayStr])
 
   useEffect(() => {
     loadData()
+  }, [loadData])
+
+  // Refetch when returning to the page (e.g., from workout page on mobile)
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState === 'visible') loadData()
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [loadData])
 
   function handleMonthChange(y: number, m: number) {
