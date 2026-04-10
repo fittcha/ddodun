@@ -57,7 +57,7 @@ export default function HomePage() {
       setCompetitions([])
       setCompetitionDates(new Set())
     }
-  }, [year, month])
+  }, [year, month, userId, todayStr])
 
   useEffect(() => {
     loadData()

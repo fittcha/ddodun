@@ -18,6 +18,36 @@ function parseDetail(raw: unknown): Record<string, unknown> {
   return {}
 }
 
+/** Extract result-only text (reps/rounds/cal/time) from detail — no weight */
+function formatResultOnly(detail: Record<string, unknown>): string {
+  if (Array.isArray(detail.result_sets) && detail.result_sets.length > 0) {
+    const rt = detail.result_type as string
+    const parts = detail.result_sets.map((s: Record<string, unknown>) => {
+      if (rt === 'rounds' && s.rounds != null) {
+        const extra = s.extra_reps ? ` + ${s.extra_reps}` : ''
+        return `${s.rounds}R${extra}`
+      }
+      if (rt === 'reps' && s.reps != null) return `${s.reps}reps`
+      if (rt === 'cal' && s.cal != null) return `${s.cal}cal`
+      if (rt === 'time' && (s.minutes != null || s.seconds != null)) {
+        return `${s.minutes || 0}:${String(s.seconds || 0).padStart(2, '0')}`
+      }
+      return null
+    }).filter(Boolean)
+    if (parts.length > 0) return parts.join(' / ')
+  }
+  if (detail.result_type === 'rounds' && detail.rounds != null) {
+    const extra = detail.extra_reps ? ` + ${detail.extra_reps}` : ''
+    return `${detail.rounds}R${extra}`
+  }
+  if (detail.result_type === 'reps' && detail.reps != null) return `${detail.reps}reps`
+  if (detail.result_type === 'cal' && detail.cal != null) return `${detail.cal}cal`
+  if (detail.result_type === 'time' && (detail.minutes != null || detail.seconds != null)) {
+    return `${detail.minutes || 0}:${String(detail.seconds || 0).padStart(2, '0')}`
+  }
+  return ''
+}
+
 function formatResultText(log: WorkoutLog): string {
   const detail = parseDetail(log.sets_detail)
 
@@ -30,10 +60,13 @@ function formatResultText(log: WorkoutLog): string {
     if (weights.length > 0) return weights.join(' - ')
   }
 
-  // Single weight
+  // Single weight — may also have result data (e.g. weight + reps)
   if (detail.weight != null) {
     const unit = (detail.weight_unit as string) || 'lb'
-    return `${detail.weight}${unit}`
+    const weightStr = `${detail.weight}${unit}`
+    // Check for accompanying result data
+    const resultStr = formatResultOnly(detail)
+    return resultStr ? `${weightStr} / ${resultStr}` : weightStr
   }
 
   // Exercise weights (for section-title templates like AMRAP)
