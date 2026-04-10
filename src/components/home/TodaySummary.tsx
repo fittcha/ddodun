@@ -18,75 +18,35 @@ function parseDetail(raw: unknown): Record<string, unknown> {
   return {}
 }
 
-/** Extract result-only text (reps/rounds/cal/time) from detail — no weight */
-function formatResultOnly(detail: Record<string, unknown>): string {
-  if (Array.isArray(detail.result_sets) && detail.result_sets.length > 0) {
-    const rt = detail.result_type as string
-    const parts = detail.result_sets.map((s: Record<string, unknown>) => {
-      if (rt === 'rounds' && s.rounds != null) {
-        const extra = s.extra_reps ? ` + ${s.extra_reps}` : ''
-        return `${s.rounds}R${extra}`
-      }
-      if (rt === 'reps' && s.reps != null) return `${s.reps}reps`
-      if (rt === 'cal' && s.cal != null) return `${s.cal}cal`
-      if (rt === 'time' && (s.minutes != null || s.seconds != null)) {
-        return `${s.minutes || 0}:${String(s.seconds || 0).padStart(2, '0')}`
-      }
-      return null
-    }).filter(Boolean)
-    if (parts.length > 0) return parts.join(' / ')
-  }
-  if (detail.result_type === 'rounds' && detail.rounds != null) {
-    const extra = detail.extra_reps ? ` + ${detail.extra_reps}` : ''
-    return `${detail.rounds}R${extra}`
-  }
-  if (detail.result_type === 'reps' && detail.reps != null) return `${detail.reps}reps`
-  if (detail.result_type === 'cal' && detail.cal != null) return `${detail.cal}cal`
-  if (detail.result_type === 'time' && (detail.minutes != null || detail.seconds != null)) {
-    return `${detail.minutes || 0}:${String(detail.seconds || 0).padStart(2, '0')}`
-  }
-  return ''
-}
-
-function formatResultText(log: WorkoutLog): string {
-  const detail = parseDetail(log.sets_detail)
-
-  // Weight sets (climbing) — may also have result data on same log (group anchor)
+/** Extract weight text from a log's sets_detail */
+function getWeightText(detail: Record<string, unknown>): string {
+  // Climbing weight sets
   if (Array.isArray(detail.sets) && detail.sets.length > 0) {
     const unit = (detail.weight_unit as string) || 'lb'
     const weights = detail.sets
       .map((s: { weight?: number | null }) => s.weight != null ? `${s.weight}${unit}` : null)
       .filter(Boolean)
-    if (weights.length > 0) {
-      const weightStr = weights.join(' - ')
-      const resultStr = formatResultOnly(detail)
-      return resultStr ? `${weightStr}\n→ ${resultStr}` : weightStr
-    }
+    if (weights.length > 0) return weights.join(' - ')
   }
-
-  // Single weight — may also have result data (e.g. weight + reps)
+  // Single weight
   if (detail.weight != null) {
     const unit = (detail.weight_unit as string) || 'lb'
-    const weightStr = `${detail.weight}${unit}`
-    // Check for accompanying result data
-    const resultStr = formatResultOnly(detail)
-    return resultStr ? `${weightStr} / ${resultStr}` : weightStr
+    return `${detail.weight}${unit}`
   }
-
-  // Exercise weights (for section-title templates like AMRAP)
+  // Exercise weights (section-title templates)
   if (detail.exercise_weights && typeof detail.exercise_weights === 'object') {
     const ew = detail.exercise_weights as Record<string, { weight?: number | null; unit?: string }>
     const parts = Object.values(ew)
       .filter(v => v.weight != null)
       .map(v => `${v.weight}${v.unit || 'lb'}`)
-    if (parts.length > 0) {
-      const weightStr = parts.join(' / ')
-      const resultStr = formatResultOnly(detail)
-      return resultStr ? `${weightStr}\n→ ${resultStr}` : weightStr
-    }
+    if (parts.length > 0) return parts.join(' / ')
   }
+  return ''
+}
 
-  // EMOM data — formatted as MIN lines
+/** Extract result text (reps/rounds/cal/time/emom) from a log's sets_detail */
+function getResultText(detail: Record<string, unknown>): string {
+  // EMOM
   if (Array.isArray(detail.emom) && detail.emom.length > 0) {
     const lines = detail.emom.map((e: { name?: string; value?: number | null; measure?: string; weight?: number | null; weight_unit?: string }, i: number) => {
       const minNum = i + 1
@@ -98,7 +58,6 @@ function formatResultText(log: WorkoutLog): string {
     })
     if (lines.length > 0) return '\n' + lines.join('\n')
   }
-
   // Multi-set results
   if (Array.isArray(detail.result_sets) && detail.result_sets.length > 0) {
     const rt = detail.result_type as string
@@ -116,25 +75,26 @@ function formatResultText(log: WorkoutLog): string {
     }).filter(Boolean)
     if (parts.length > 0) return parts.join(' / ')
   }
-
-  // Legacy single-value results
+  // Legacy single-value
   if (detail.result_type === 'rounds' && detail.rounds != null) {
     const extra = detail.extra_reps ? ` + ${detail.extra_reps}` : ''
     return `${detail.rounds}R${extra}`
   }
-  if (detail.result_type === 'reps' && detail.reps != null) {
-    return `${detail.reps}reps`
-  }
-  if (detail.result_type === 'cal' && detail.cal != null) {
-    return `${detail.cal}cal`
-  }
+  if (detail.result_type === 'reps' && detail.reps != null) return `${detail.reps}reps`
+  if (detail.result_type === 'cal' && detail.cal != null) return `${detail.cal}cal`
   if (detail.result_type === 'time' && (detail.minutes != null || detail.seconds != null)) {
-    const m = detail.minutes || 0
-    const s = detail.seconds || 0
-    return `${m}:${String(s).padStart(2, '0')}`
+    return `${detail.minutes || 0}:${String(detail.seconds || 0).padStart(2, '0')}`
   }
-
   return ''
+}
+
+/** Combine weight + result into display text */
+function combineResult(weight: string, result: string): string {
+  if (weight && result) {
+    if (result.startsWith('\n')) return `${weight}${result}` // EMOM: newlines
+    return `${weight} / ${result}`
+  }
+  return weight || result
 }
 
 function generateSummaryText(templates: WorkoutTemplate[], logs: WorkoutLog[]): string {
@@ -167,28 +127,49 @@ function generateSummaryText(templates: WorkoutTemplate[], logs: WorkoutLog[]): 
   for (const { section, items } of sections) {
     const lines: string[] = [`${section}.`]
 
-    items.forEach((t, i) => {
-      if (i > 0) lines.push('')  // blank line between templates in same section
-      if (t.title) lines.push(t.title)
-      if (t.description) {
-        const descLines = t.description.split('\n')
+    // First pass: extract weight/result per template
+    const entries = items.map(t => {
+      const log = logMap.get(t.id)!
+      const detail = parseDetail(log.sets_detail)
+      return { template: t, log, weight: getWeightText(detail), result: getResultText(detail) }
+    })
+
+    // Second pass: propagate orphan result (from group anchor) to weight-only entries
+    // An orphan result = has result but no weight; weight-only = has weight but no result
+    for (let i = 0; i < entries.length; i++) {
+      const e = entries[i]
+      if (e.result && !e.weight) {
+        // This is likely a group anchor with result-only — find adjacent weight-only entry to merge
+        for (let j = i + 1; j < entries.length; j++) {
+          if (entries[j].weight && !entries[j].result) {
+            entries[j].result = e.result
+            e.result = '' // consumed
+            break
+          }
+        }
+      }
+    }
+
+    entries.forEach((e, i) => {
+      if (i > 0) lines.push('')
+      if (e.template.title) lines.push(e.template.title)
+      if (e.template.description) {
+        const descLines = e.template.description.split('\n')
         for (const dl of descLines) {
           lines.push(dl)
           if (/^rest\s+\d/i.test(dl.trim())) lines.push('')
         }
       }
 
-      const log = logMap.get(t.id)!
-      const result = formatResultText(log)
-      if (result) {
-        if (result.startsWith('\n')) {
-          // Multi-line result (EMOM) — append directly without → prefix
-          lines.push(result.trimStart())
+      const combined = combineResult(e.weight, e.result)
+      if (combined) {
+        if (combined.startsWith('\n')) {
+          lines.push(combined.trimStart())
         } else {
-          lines.push(`→ ${result}`)
+          lines.push(`→ ${combined}`)
         }
       }
-      if (log.memo) lines.push(`📝 ${log.memo}`)
+      if (e.log.memo) lines.push(`📝 ${e.log.memo}`)
     })
 
     parts.push(lines.join('\n'))
