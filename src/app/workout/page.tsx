@@ -155,8 +155,9 @@ function WorkoutContent() {
   }, [sections, logs])
 
   // Progress
-  const totalSections = sections.length
-  const completedSections = sections.filter(s => {
+  const workoutSections = sections.filter(s => !s.templates.every(t => t.workout_type === 'note'))
+  const totalSections = workoutSections.length
+  const completedSections = workoutSections.filter(s => {
     const sLogs = sectionLogs.get(s.section) || []
     return s.templates.length > 0 && s.templates.every(t => sLogs.find(l => l.template_id === t.id)?.completed)
   }).length
@@ -260,17 +261,30 @@ function WorkoutContent() {
       {/* Workout sections */}
       <div className={`space-y-4 transition-opacity duration-150 ${loading ? 'opacity-40' : ''}`}>
       {sections.length > 0 ? (
-        sections.map(({ section, templates: sectionTemplates }) => (
-          <WorkoutSection
-            key={section}
-            userId={userId}
-            section={section}
-            templates={sectionTemplates}
-            logs={sectionLogs.get(section) ?? emptyLogs}
-            date={date}
-            onLogUpdate={handleLogUpdate}
-          />
-        ))
+        sections.map(({ section, templates: sectionTemplates }) => {
+          if (sectionTemplates.every(t => t.workout_type === 'note')) {
+            return (
+              <div key={section} className="px-5 -my-1.5">
+                {sectionTemplates.map(t => (
+                  <p key={t.id} className="text-[11px] text-text-secondary/60 whitespace-pre-line leading-relaxed">
+                    {t.description}
+                  </p>
+                ))}
+              </div>
+            )
+          }
+          return (
+            <WorkoutSection
+              key={section}
+              userId={userId}
+              section={section}
+              templates={sectionTemplates}
+              logs={sectionLogs.get(section) ?? emptyLogs}
+              date={date}
+              onLogUpdate={handleLogUpdate}
+            />
+          )
+        })
       ) : (
         <div className="bg-surface rounded-lg border border-border p-6 text-center text-text-secondary text-sm">
           등록된 운동이 없습니다
