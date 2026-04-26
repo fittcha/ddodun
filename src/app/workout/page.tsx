@@ -264,7 +264,7 @@ function WorkoutContent() {
         sections.map(({ section, templates: sectionTemplates }) => {
           if (sectionTemplates.every(t => t.workout_type === 'note')) {
             return (
-              <div key={section} className="px-5 -my-1.5">
+              <div key={section} className="px-5 py-1">
                 {sectionTemplates.map(t => (
                   <p key={t.id} className="text-[11px] text-text-secondary/60 whitespace-pre-line leading-relaxed">
                     {t.description}
