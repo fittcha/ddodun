@@ -48,7 +48,7 @@ function parseDescription(desc: string | null): {
   const orderedLines: { text: string; type: LineType }[] = []
 
   for (const line of lines) {
-    if (!setInfo && /^\d+\s*(sets?|x\s*(\d+|Max\b|\())/i.test(line)) {
+    if (!setInfo && /^\d+\s+sets?/i.test(line)) {
       setInfo = line
     } else if (!setInfo && /^every\s+/i.test(line)) {
       setInfo = line
@@ -67,7 +67,7 @@ function parseDescription(desc: string | null): {
     } else if (
       line.startsWith('*') || line.startsWith('@') || line.startsWith('- Rest')
       || /^Rest\s+/i.test(line) || line === '+'
-      || /^\d+\s*x\s*\(/.test(line)
+      || /^\d+\s*x\s/i.test(line)
       || /^\d+(-\d+)+\s*,/.test(line)
       || /^—\s*into\s*—/i.test(line)
     ) {
