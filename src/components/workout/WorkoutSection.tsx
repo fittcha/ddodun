@@ -42,6 +42,8 @@ function parseDescription(desc: string | null): {
 } {
   if (!desc) return { setInfo: null, exercises: [], notes: [], orderedLines: [] }
   const lines = desc.split('\n').map(l => l.trim()).filter(Boolean)
+  const nxPattern = /^\d+\s*x\s/i
+  const nxCount = lines.filter(l => nxPattern.test(l)).length
   let setInfo: string | null = null
   const exercises: string[] = []
   const notes: string[] = []
@@ -49,6 +51,8 @@ function parseDescription(desc: string | null): {
 
   for (const line of lines) {
     if (!setInfo && /^\d+\s+sets?/i.test(line)) {
+      setInfo = line
+    } else if (!setInfo && nxCount === 1 && nxPattern.test(line)) {
       setInfo = line
     } else if (!setInfo && /^every\s+/i.test(line)) {
       setInfo = line
