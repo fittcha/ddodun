@@ -62,13 +62,13 @@ function parseDescription(desc: string | null): {
       setInfo = line
     } else if (setInfo && exercises.length === 0 && line.startsWith('(')) {
       setInfo = `${setInfo} · ${line}`
-    } else if (/^\d+(-\d+)+$/.test(line) || /^\d+\s+rounds?\s+for/i.test(line)) {
+    } else if (/^\d+\s+rounds?\s+for/i.test(line)) {
       orderedLines.push({ text: line, type: 'subheader' })
     } else if (
       line.startsWith('*') || line.startsWith('@') || line.startsWith('- Rest')
       || /^Rest\s+/i.test(line) || line === '+'
       || /^\d+\s*x\s/i.test(line)
-      || /^\d+(-\d+)+\s*,/.test(line)
+      || /^\d+(-\d+)+/.test(line)
       || /^—\s*into\s*—/i.test(line)
     ) {
       notes.push(line)
