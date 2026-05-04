@@ -44,6 +44,8 @@ function parseDescription(desc: string | null): {
   const lines = desc.split('\n').map(l => l.trim()).filter(Boolean)
   const nxPattern = /^\d+\s*x\s/i
   const nxCount = lines.filter(l => nxPattern.test(l)).length
+  const dashRepPattern = /^\d+(-\d+)+$/
+  const dashRepCount = lines.filter(l => dashRepPattern.test(l)).length
   let setInfo: string | null = null
   const exercises: string[] = []
   const notes: string[] = []
@@ -64,6 +66,8 @@ function parseDescription(desc: string | null): {
       setInfo = line
     } else if (!setInfo && /^for\s+time/i.test(line)) {
       setInfo = line
+    } else if (!setInfo && dashRepCount === 1 && dashRepPattern.test(line)) {
+      setInfo = line
     } else if (setInfo && exercises.length === 0 && line.startsWith('(')) {
       setInfo = `${setInfo} · ${line}`
     } else if (/^\d+\s+rounds?\s+for/i.test(line)) {
@@ -72,7 +76,7 @@ function parseDescription(desc: string | null): {
       line.startsWith('*') || line.startsWith('@') || line.startsWith('- Rest')
       || /^Rest\s+/i.test(line) || line === '+'
       || /^\d+\s*x\s/i.test(line)
-      || /^\d+(-\d+)+/.test(line)
+      || (dashRepCount > 1 && dashRepPattern.test(line))
       || /^—\s*into\s*—/i.test(line)
     ) {
       notes.push(line)
