@@ -70,6 +70,8 @@ function parseDescription(desc: string | null): {
       setInfo = line
     } else if (!setInfo && /^\d+(-\d+)+\s+minutes?\s/i.test(line)) {
       setInfo = line
+    } else if (!setInfo && /\(\d+:\d+\)$/.test(line)) {
+      setInfo = line
     } else if (setInfo && exercises.length === 0 && line.startsWith('(')) {
       setInfo = `${setInfo} · ${line}`
     } else if (/^\d+\s+rounds?\s+for/i.test(line)) {
