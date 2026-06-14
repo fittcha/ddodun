@@ -28,18 +28,18 @@ it touches the DB.** Never eyeball-and-insert — generate SQL, run `validate.mj
 | Rendering rules doc | `app/docs/prd.md` §7 "운동 이미지 → UI 렌더링 규칙" |
 | Hard-won gotchas | memory `feedback_ddodun_workout_data.md` — **read it every time** |
 | Supabase creds | `app/.env.local` (`SUPABASE_SERVICE_ROLE_KEY`, schema `ddodun`) |
-| Validator / inserter | `app/.claude/skills/ddodun-weekly-workout/scripts/{validate,insert}.mjs` (real files, tracked in app repo) — symlinked at outer `.claude/skills/` so it's discovered when CWD is the ddodun root |
+| Scripts | `app/.claude/skills/ddodun-weekly-workout/scripts/{crop-days,validate,insert}.mjs` (real files, tracked in app repo) — symlinked at outer `.claude/skills/` so it's discovered when CWD is the ddodun root |
 
 Week numbering: file `weekN` is sequential, NOT the calendar week. The latest file +1
 is this week (e.g. 6월 1주차 = week14 → 6월 2주차 = week15). Dates come from the image header.
 
 ## Workflow
 
-1. **Read the image** (`Read` the combined jpeg, and any per-day crops the user attaches). Note the date range and the MON~FRI date mapping. Verify weekday↔date with `date -j -f "%Y-%m-%d" "<date>" "+%a"`.
+1. **Read the image, one day at a time.** If the user attaches per-day crops, Read those. Otherwise **split the combined sheet first** — `node .claude/skills/ddodun-weekly-workout/scripts/crop-days.mjs "exercise/<N>월 <N>주차.jpeg"` — then `Read` each printed crop individually. The combined sheet is only ~1400px wide, so each of the 5 columns is tiny and error-prone; the per-day crops are isolated and upscaled, so you won't mis-attribute a section to the wrong day. Note the date range and verify weekday↔date with `date -j -f "%Y-%m-%d" "<date>" "+%a"`.
 2. **Read the latest `weekN-templates.sql`** — it is your formatting template (escaping, `— into —`, workout_type values, comment header). Also (re)read `feedback_ddodun_workout_data.md` and prd §7.
 3. **Check for duplicates**: query existing rows for the target dates (the inserter does this too, but check early).
 4. **Transcribe each day section-by-section into a new `weekN-templates.sql`**, one `INSERT … VALUES` block per day, applying the [classification rules](#classification-cheat-sheet) and [pitfalls](#critical-pitfalls) below.
-5. **Validate**: `node .claude/skills/ddodun-weekly-workout/scripts/validate.mjs app/docs/sql/weekN-templates.sql`. It prints the exact group/line classification — **read every section against the image** and confirm `problems: 0`. Fix and re-run until clean.
+5. **Validate**: `node .claude/skills/ddodun-weekly-workout/scripts/validate.mjs app/docs/sql/weekN-templates.sql`. It prints the exact group/line classification — **read every section against that day's crop** (from step 1) and confirm `problems: 0`. Fix and re-run until clean.
 6. **Insert**: `node .claude/skills/ddodun-weekly-workout/scripts/insert.mjs app/docs/sql/weekN-templates.sql`. It parses the SQL (single source of truth), POSTs JSON to Supabase, and re-queries to confirm the row count.
 7. **Report**: per-day row counts, any section-letter reassignments or typo fixes, and the verified DB count. Commit the SQL file to the app repo if the user wants.
 
@@ -80,7 +80,7 @@ description lines = exercises). A plain lift name (`Back Squat`, `Bench Press`, 
 
 ## Verification checklist (before claiming done)
 
-- [ ] `validate.mjs` prints `problems: 0` and you read each section's output against the image
+- [ ] `validate.mjs` prints `problems: 0` and you read each section's output against that day's crop
 - [ ] Row counts per day match what you transcribed
 - [ ] Every `— into —` / `* and then,` row shows `[NEW GROUP ✓]`
 - [ ] Section titles (`AMRAP/EMOM/For time`) show `(SECTION)`; lift names do not
