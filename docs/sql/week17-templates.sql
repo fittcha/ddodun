@@ -10,7 +10,7 @@ INSERT INTO ddodun.workout_templates (date, day_of_week, section, workout_type, 
 ('2026-06-22', 'MON', 'C', 'strength', NULL, E'— into —\n3 Sets\n5 Pause Back Squat @ 60%\nRest 2:00 b/w sets', 7),
 ('2026-06-22', 'MON', 'D', 'metcon', 'For time of : 13-11-9-7-5', E'Bar Muscle ups\nSquat Snatch @ 75lb', 8),
 ('2026-06-22', 'MON', 'E', 'accessory', NULL, E'3 Sets\n7.5m x 4 KB Mixed Position Walk\n30 Basketball Abs\n30''s Side Plank Rotations (Each)\n5 Box Jump 30inch\n* KB Mixed Position\n* KB(1) Front Rack + KB(1) Overhead Position', 9),
-('2026-06-22', 'MON', 'F', 'metcon', NULL, E'6 Sets\nAMRAP 2\n21 Cal Row\nMax Burpee Over the Rower\nRest 1:00', 10);
+('2026-06-22', 'MON', 'F', 'metcon', NULL, E'6 Sets\n(AMRAP 2)\n21 Cal Row\nMax Burpee Over the Rower\nRest 1:00', 10);
 
 -- TUE 2026-06-23
 INSERT INTO ddodun.workout_templates (date, day_of_week, section, workout_type, title, description, sort_order) VALUES
@@ -49,5 +49,6 @@ INSERT INTO ddodun.workout_templates (date, day_of_week, section, workout_type, 
 ('2026-06-26', 'FRI', 'C', 'strength', NULL, E'Snatch Balance\n4 x 3, Climbing\n* Rest as needed b/w sets', 4),
 ('2026-06-26', 'FRI', 'D', 'strength', 'Back Squat', E'2 x 3 @ 87%\n2 x 2 @ 90%\n* Rest 3:00 b/w sets', 5),
 ('2026-06-26', 'FRI', 'E', 'strength', NULL, E'3 Sets\n10 Close Grip Bench Press\n10 Inverted Barbell Row\n20 Cable Face Pulls\n* Rest as needed', 6),
-('2026-06-26', 'FRI', 'F', 'metcon', 'AMRAP 12', E'10 Cal Row\n10 DB Thruster 25lb\n10 Toes to bar\n- Rest 3:00 -\nAMRAP 6\n10 DB Thruster 25lb\n10 Toes to bar', 7),
-('2026-06-26', 'FRI', 'G', 'accessory', NULL, E'3 Sets\n3~5 Weighted Strict Pull ups\n10/10 Piston Row\n20 DB Death March\n5/5 Back Rack Drop Lunge to Knee Lifts\n* Rest as needed b/w sets', 8);
+('2026-06-26', 'FRI', 'F', 'metcon', 'AMRAP 12', E'10 Cal Row\n10 DB Thruster 25lb\n10 Toes to bar', 7),
+('2026-06-26', 'FRI', 'F', 'metcon', NULL, E'Rest 3:00\nAMRAP 6\n10 DB Thruster 25lb\n10 Toes to bar', 8),
+('2026-06-26', 'FRI', 'G', 'accessory', NULL, E'3 Sets\n3~5 Weighted Strict Pull ups\n10/10 Piston Row\n20 DB Death March\n5/5 Back Rack Drop Lunge to Knee Lifts\n* Rest as needed b/w sets', 9);

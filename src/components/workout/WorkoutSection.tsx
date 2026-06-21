@@ -62,6 +62,8 @@ function parseDescription(desc: string | null): {
       setInfo = line
     } else if (!setInfo && /^EMOM\s+\d+/i.test(line)) {
       setInfo = line
+    } else if (!setInfo && /^amrap\s+\d/i.test(line)) {
+      setInfo = line
     } else if (!setInfo && /^accumulate\s+/i.test(line)) {
       setInfo = line
     } else if (!setInfo && /^for\s+time/i.test(line)) {

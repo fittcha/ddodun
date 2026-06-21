@@ -51,7 +51,7 @@ by `parseDescription` in this priority (first match wins, setInfo only once per 
 
 | Line pattern | Becomes | Notes |
 |---|---|---|
-| `N Sets`, `Every …`, `EMOM N`, `N rounds`, `for time…`, `accumulate …`, trailing `(M:SS)` | **setInfo** (grey header) | only the FIRST match |
+| `N Sets`, `Every …`, `EMOM N`, `AMRAP N`, `N rounds`, `for time…`, `accumulate …`, trailing `(M:SS)` | **setInfo** (grey header) | only the FIRST match |
 | `N x M` | **setInfo** if exactly **1** such line in the template, else **note** |
 | `N-N-N` (e.g. `21-15-9`) | **setInfo** if exactly 1, else note; `N rounds for…` → subheader |
 | line after setInfo starting `(` | merged into setInfo with `·` | e.g. `5 rounds · (3 min On / 1 min Off)` |
@@ -72,6 +72,7 @@ description lines = exercises). A plain lift name (`Back Squat`, `Bench Press`, 
   - **`* and then,`** — the `*` is mandatory; without it "and then," parses as an exercise and the group won't split.
 - **Apostrophes** in `E'…'` must be doubled: `3's Descent` → `3''s Descent`, `2's Pause` → `2''s Pause`. (The JSON inserter decodes `''`→`'`.)
 - **Set/rep schemes are setInfo, not exercises** — `30-20-10 reps`, `5 rounds for time of :` go in title or as the first/setInfo line, never as a plain movement line.
+- **`AMRAP N` is setInfo, never an exercise name.** Standalone `AMRAP 6` → grey setInfo (parser has `/^amrap\s+\d/i`). But if a prior setInfo (e.g. `6 Sets`) already claimed the slot, wrap as `(AMRAP 2)` on the next line so it merges → `6 Sets · (AMRAP 2)` (week13 `5 Sets\n(AMRAP 2:30 / Rest 1:30)`). Section-leading AMRAP may instead be `title='AMRAP N'` (section header). **Two AMRAP blocks in one section** (`AMRAP 12 … - Rest 3:00 - … AMRAP 6 …`): split into 2 rows — row2 starts `Rest 3:00`(leadingRest, drop the surrounding dashes so `/^Rest\s+/i` matches) then `AMRAP 6`(group setInfo).
 - **Modifiers stay on the movement's line** — `(3's Descent)`, `@ Heavy`, `@ 70~80%` belong on the same line as the movement, not a separate line.
 - **Directives are notes** — `Find Heavy Sets`, `Target Under 12:00` → `* Find Heavy Sets` (prefix `*`); conventionally placed AFTER the movement line.
 - **A lift "wave" then `— into —` accessory**: row1 `title='Bench Press'` (or Back Squat/Deadlift) with the `1 x 5 @ 65%` etc. lines (they're all `N x` → notes), row2 `title=NULL` starting `— into —\n3 Sets\n…`.
