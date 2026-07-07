@@ -16,6 +16,7 @@ import { getLoggedInUser } from '@/lib/auth'
 const DEFAULT_1RM = [
   { name: 'Back Squat', label: '백스쿼트' },
   { name: 'Front Squat', label: '프론트스쿼트' },
+  { name: 'Overhead Squat', label: '오버헤드스쿼트' },
   { name: 'Deadlift', label: '데드리프트' },
   { name: 'Bench Press', label: '벤치프레스' },
   { name: 'Shoulder Press', label: '숄더프레스' },
