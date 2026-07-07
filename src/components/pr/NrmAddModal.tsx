@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { X } from 'lucide-react'
 
 const DEFAULT_EXERCISES = [
-  'Back Squat', 'Front Squat', 'Deadlift', 'Bench Press',
+  'Back Squat', 'Front Squat', 'Overhead Squat', 'Deadlift', 'Bench Press',
   'Shoulder Press', 'Push Press', 'Clean', 'Power Clean',
   'Clean & Jerk', 'Push Jerk', 'Snatch', 'Power Snatch',
 ]
