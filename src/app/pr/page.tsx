@@ -21,6 +21,7 @@ const DEFAULT_1RM = [
   { name: 'Bench Press', label: '벤치프레스' },
   { name: 'Shoulder Press', label: '숄더프레스' },
   { name: 'Push Press', label: '푸시프레스' },
+  { name: 'Thruster', label: '쓰러스터' },
   { name: 'Clean', label: '클린' },
   { name: 'Power Clean', label: '파워클린' },
   { name: 'Clean & Jerk', label: '클린앤저크' },

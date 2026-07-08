@@ -353,6 +353,39 @@ export function PushPressIcon({ size = 24 }: { size?: number }) {
   )
 }
 
+// 쓰러스터 - 딥 스쿼트에서 오버헤드로 드라이브 (프론트스쿼트+푸시프레스)
+export function ThrusterIcon({ size = 24 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="32" cy="16" r="5" strokeWidth="3" />
+      {/* Barbell driven overhead, shoulder-width grip */}
+      <line x1="8" y1="8" x2="56" y2="8" strokeWidth="3" />
+      <rect x="4" y="4" width="4" height="8" rx="1" strokeWidth="2.5" />
+      <rect x="9" y="5" width="3" height="6" rx="0.5" strokeWidth="2" />
+      <rect x="56" y="4" width="4" height="8" rx="1" strokeWidth="2.5" />
+      <rect x="52" y="5" width="3" height="6" rx="0.5" strokeWidth="2" />
+      {/* Arms pressing overhead - slight bend */}
+      <path d="M26 22 L22 16 L20 8" strokeWidth="3" fill="none" />
+      <path d="M38 22 L42 16 L44 8" strokeWidth="3" fill="none" />
+      {/* Torso drops low */}
+      <path d="M28 24 L25 44" strokeWidth="3.5" />
+      <path d="M36 24 L39 44" strokeWidth="3.5" />
+      {/* Hips at 44 */}
+      <path d="M25 44 Q32 48, 39 44" strokeWidth="3" />
+      {/* Thigh UP to knee (~38), shin down - ATG */}
+      <path d="M25 44 C20 44, 14 40, 12 38" strokeWidth="3.5" />
+      <path d="M12 38 C12 46, 14 52, 16 56" strokeWidth="3.5" />
+      <line x1="16" y1="56" x2="10" y2="58" strokeWidth="3" />
+      <path d="M39 44 C44 44, 50 40, 52 38" strokeWidth="3.5" />
+      <path d="M52 38 C52 46, 50 52, 48 56" strokeWidth="3.5" />
+      <line x1="48" y1="56" x2="54" y2="58" strokeWidth="3" />
+      {/* Upward drive motion lines */}
+      <line x1="6" y1="42" x2="6" y2="34" strokeWidth="1.5" strokeDasharray="2 3" />
+      <line x1="58" y1="42" x2="58" y2="34" strokeWidth="1.5" strokeDasharray="2 3" />
+    </svg>
+  )
+}
+
 // 푸시저크 - 정면, 오버헤드 + 스플릿 스탠스
 export function JerkIcon({ size = 24 }: { size?: number }) {
   return (
@@ -514,6 +547,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number }>> = {
   '벤치프레스': BenchIcon,
   '숄더프레스': OverheadIcon,
   '푸시프레스': PushPressIcon,
+  '쓰러스터': ThrusterIcon,
   '클린': CleanIcon,
   '파워클린': PowerCleanIcon,
   '클린앤저크': CleanAndJerkIcon,
