@@ -15,6 +15,8 @@ export interface WorkoutTemplate {
   rest_seconds: number | null
   notes: string | null
   sort_order: number
+  extra_group_id: string | null
+  extra_order: number | null
 }
 
 export async function getTemplateDatesByMonth(year: number, month: number): Promise<string[]> {
@@ -50,6 +52,7 @@ export async function getTemplatesByDate(date: string): Promise<WorkoutTemplate[
     .from('workout_templates')
     .select('*')
     .eq('date', date)
+    .is('extra_group_id', null)
     .order('section')
     .order('sort_order')
 
