@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Plus, Trophy } from 'lucide-react'
 import Calendar from '@/components/calendar/Calendar'
 import CompetitionModal from '@/components/calendar/CompetitionModal'
-import { getTemplateDatesByMonth, getTemplatesByDate, type WorkoutTemplate } from '@/lib/api/workout-templates'
+import { getTemplateDatesByMonth, getTemplatesByDate, getExtraTemplatesByDate, type WorkoutTemplate } from '@/lib/api/workout-templates'
 import { getLogDatesByMonth, getLogsByDate, type WorkoutLog } from '@/lib/api/workout-logs'
 import {
   getCompetitionsByMonth,
@@ -54,9 +54,10 @@ export default function HomePage() {
 
     const todayPromise = Promise.all([
       getTemplatesByDate(todayStr),
+      getExtraTemplatesByDate(todayStr),
       getLogsByDate(userId, todayStr),
-    ]).then(([tTemplates, tLogs]) => {
-      setTodayTemplates(tTemplates)
+    ]).then(([tTemplates, tExtras, tLogs]) => {
+      setTodayTemplates([...tTemplates, ...tExtras])
       setTodayLogs(tLogs)
     }).catch(err => {
       console.error('Failed to load today summary:', err)
