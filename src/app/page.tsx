@@ -34,6 +34,7 @@ export default function HomePage() {
   const [todayTemplates, setTodayTemplates] = useState<WorkoutTemplate[]>([])
   const [todayLogs, setTodayLogs] = useState<WorkoutLog[]>([])
   const [todaySummary, setTodaySummary] = useState<DaySummary | null>(null)
+  const [todayLoaded, setTodayLoaded] = useState(false)
 
   const todayStr = getToday()
 
@@ -68,8 +69,10 @@ export default function HomePage() {
       setTodayTemplates([...tTemplates, ...tExtras])
       setTodayLogs(tLogs)
       setTodaySummary(tSummary)
+      setTodayLoaded(true)
     }).catch(err => {
       console.error('Failed to load today summary:', err)
+      setTodayLoaded(true)
     })
 
     await Promise.all([calendarPromise, todayPromise])
@@ -185,12 +188,14 @@ export default function HomePage() {
       )}
 
       {/* Today's Workout Summary */}
-      <TodaySummary
-        templates={todayTemplates}
-        logs={todayLogs}
-        stored={todaySummary}
-        onSave={handleSummarySave}
-      />
+      {todayLoaded && (
+        <TodaySummary
+          templates={todayTemplates}
+          logs={todayLogs}
+          stored={todaySummary}
+          onSave={handleSummarySave}
+        />
+      )}
 
       {/* Competition Modal */}
       <CompetitionModal

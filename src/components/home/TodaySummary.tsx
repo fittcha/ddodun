@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Copy, Check, RotateCcw } from 'lucide-react'
 import type { WorkoutTemplate } from '@/lib/api/workout-templates'
 import type { WorkoutLog } from '@/lib/api/workout-logs'
@@ -45,6 +45,7 @@ export default function TodaySummary({ templates, logs, stored, onSave }: TodayS
   }
 
   function handleReset() {
+    if (saveTimer.current) clearTimeout(saveTimer.current)
     const next = reconcileSummary(null, templates, logs)
     docRef.current = next
     setDoc(next)
