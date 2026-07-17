@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Plus, Trophy } from 'lucide-react'
 import Calendar from '@/components/calendar/Calendar'
 import CompetitionModal from '@/components/calendar/CompetitionModal'
-import { getTemplateDatesByMonth, getTemplatesByDate, type WorkoutTemplate } from '@/lib/api/workout-templates'
+import { getTemplateDatesByMonth, getTemplatesByDate, getExtraTemplatesByDate, type WorkoutTemplate } from '@/lib/api/workout-templates'
 import { getLogDatesByMonth, getLogsByDate, type WorkoutLog } from '@/lib/api/workout-logs'
 import {
   getCompetitionsByMonth,
@@ -17,6 +17,7 @@ import {
 import { getToday, getWeekdaysInMonth, getDday } from '@/lib/date-utils'
 import { getLoggedInUser } from '@/lib/auth'
 import TodaySummary from '@/components/home/TodaySummary'
+import { getDaySummary, upsertDaySummary, type DaySummary, type DaySummaryBlock } from '@/lib/api/day-summaries'
 
 export default function HomePage() {
   const router = useRouter()
@@ -32,8 +33,15 @@ export default function HomePage() {
   const [editComp, setEditComp] = useState<Competition | null>(null)
   const [todayTemplates, setTodayTemplates] = useState<WorkoutTemplate[]>([])
   const [todayLogs, setTodayLogs] = useState<WorkoutLog[]>([])
+  const [todaySummary, setTodaySummary] = useState<DaySummary | null>(null)
+  const [todayLoaded, setTodayLoaded] = useState(false)
 
   const todayStr = getToday()
+
+  const handleSummarySave = useCallback((text: string, blocks: DaySummaryBlock[]) => {
+    upsertDaySummary(userId, todayStr, text, blocks).catch(err =>
+      console.error('Failed to save day summary:', err))
+  }, [userId, todayStr])
 
   const loadData = useCallback(async () => {
     if (!userId) return
@@ -54,12 +62,17 @@ export default function HomePage() {
 
     const todayPromise = Promise.all([
       getTemplatesByDate(todayStr),
+      getExtraTemplatesByDate(todayStr),
       getLogsByDate(userId, todayStr),
-    ]).then(([tTemplates, tLogs]) => {
-      setTodayTemplates(tTemplates)
+      getDaySummary(userId, todayStr).catch(() => null),
+    ]).then(([tTemplates, tExtras, tLogs, tSummary]) => {
+      setTodayTemplates([...tTemplates, ...tExtras])
       setTodayLogs(tLogs)
+      setTodaySummary(tSummary)
+      setTodayLoaded(true)
     }).catch(err => {
       console.error('Failed to load today summary:', err)
+      setTodayLoaded(true)
     })
 
     await Promise.all([calendarPromise, todayPromise])
@@ -175,7 +188,14 @@ export default function HomePage() {
       )}
 
       {/* Today's Workout Summary */}
-      <TodaySummary templates={todayTemplates} logs={todayLogs} />
+      {todayLoaded && (
+        <TodaySummary
+          templates={todayTemplates}
+          logs={todayLogs}
+          stored={todaySummary}
+          onSave={handleSummarySave}
+        />
+      )}
 
       {/* Competition Modal */}
       <CompetitionModal

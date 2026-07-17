@@ -18,6 +18,9 @@ interface WorkoutSectionProps {
   logs: WorkoutLog[]
   date: string
   onLogUpdate: (log: WorkoutLog) => void
+  displayName?: string
+  onDelete?: () => void
+  onDuplicateToToday?: (templates: WorkoutTemplate[]) => Promise<void> | void
 }
 
 function parseDetail(raw: unknown): Record<string, unknown> {
@@ -209,7 +212,7 @@ function computeGroups(templates: WorkoutTemplate[]): TemplateGroup[] {
   return groups
 }
 
-function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpdate }: WorkoutSectionProps) {
+function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpdate, displayName, onDelete, onDuplicateToToday }: WorkoutSectionProps) {
   const [localLogs, setLocalLogs] = useState<Record<string, WorkoutLog>>({})
   // Per-group toggles (keyed by group anchor template id)
   const [resultOpen, setResultOpen] = useState<Record<string, boolean>>({})
@@ -573,7 +576,36 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
     })
   }
 
-  const [copyToast, setCopyToast] = useState(false)
+  const [copyMenuOpen, setCopyMenuOpen] = useState(false)
+  const [toastMsg, setToastMsg] = useState<string | null>(null)
+  const showToast = (msg: string) => {
+    setToastMsg(msg)
+    setTimeout(() => setToastMsg(null), 1000)
+  }
+
+  function buildCopyText(): string {
+    return templates.map(t => {
+      const parts: string[] = []
+      if (t.title) parts.push(t.title)
+      if (isEmomType(t)) {
+        const log = getLog(t.id)
+        const detail = parseDetail(log?.sets_detail)
+        if (Array.isArray(detail.emom) && detail.emom.length > 0) {
+          detail.emom.forEach((e: { name?: string; value?: number | null; measure?: string; weight?: number | null; weight_unit?: string }, i: number) => {
+            const minNum = i + 1
+            let line = `${minNum}MIN: `
+            if (e.value != null) line += e.measure === 'cal' ? `${e.value}cal ` : `${e.value} `
+            line += e.name || ''
+            if (e.weight != null) line += ` @${e.weight}${e.weight_unit || 'lb'}`
+            parts.push(line.trimEnd())
+          })
+        }
+      } else {
+        if (t.description) parts.push(t.description)
+      }
+      return parts.join('\n')
+    }).join('\n\n')
+  }
 
   const allCompleted = templates.length > 0 && templates.every(t => getLog(t.id)?.completed)
   const someCompleted = templates.some(t => getLog(t.id)?.completed)
@@ -604,7 +636,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
             <div className="w-2 h-0.5 bg-success rounded" />
           )}
         </button>
-        <span className="text-xs font-bold text-accent">{section}</span>
+        <span className="text-xs font-bold text-accent">{displayName ?? section}</span>
         {sectionLabel && (
           <span className="text-xs font-medium text-text-secondary">{sectionLabel}</span>
         )}
@@ -613,35 +645,9 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
         {firstGroupAnchor && (
           <div className="ml-auto flex items-center gap-1">
             <button
-              onClick={() => {
-                const text = templates.map(t => {
-                  const parts: string[] = []
-                  if (t.title) parts.push(t.title)
-                  // If EMOM template with logged entries, format as MIN lines
-                  if (isEmomType(t)) {
-                    const log = getLog(t.id)
-                    const detail = parseDetail(log?.sets_detail)
-                    if (Array.isArray(detail.emom) && detail.emom.length > 0) {
-                      detail.emom.forEach((e: { name?: string; value?: number | null; measure?: string; weight?: number | null; weight_unit?: string }, i: number) => {
-                        const minNum = i + 1
-                        let line = `${minNum}MIN: `
-                        if (e.value != null) line += e.measure === 'cal' ? `${e.value}cal ` : `${e.value} `
-                        line += e.name || ''
-                        if (e.weight != null) line += ` @${e.weight}${e.weight_unit || 'lb'}`
-                        parts.push(line.trimEnd())
-                      })
-                    }
-                  } else {
-                    if (t.description) parts.push(t.description)
-                  }
-                  return parts.join('\n')
-                }).join('\n\n')
-                navigator.clipboard.writeText(text)
-                setCopyToast(true)
-                setTimeout(() => setCopyToast(false), 1000)
-              }}
+              onClick={() => setCopyMenuOpen(true)}
               className="w-6 h-6 rounded flex items-center justify-center text-text-secondary/50 active:text-accent"
-              title="원본 텍스트 복사"
+              title="운동 복사"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="9" y="9" width="13" height="13" rx="2" />
@@ -671,6 +677,18 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
                 <line x1="4" y1="17" x2="14" y2="17" />
               </svg>
             </button>
+            {onDelete && (
+              <button
+                onClick={onDelete}
+                className="w-6 h-6 rounded flex items-center justify-center text-text-secondary/50 active:text-danger"
+                title="추가운동 삭제"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -1083,10 +1101,47 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
           </div>
         )
       })}
-      {/* Copy toast */}
-      {copyToast && (
+      {/* Copy menu popover */}
+      {copyMenuOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setCopyMenuOpen(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative w-[280px] bg-surface rounded-2xl p-5 shadow-lg" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-bold text-center mb-4">운동 복사</h3>
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(buildCopyText())
+                  setCopyMenuOpen(false)
+                  showToast('복사됨')
+                }}
+                className="w-full py-2.5 rounded-lg border border-border bg-background text-foreground font-medium"
+              >
+                내용 복사
+              </button>
+              {onDuplicateToToday && (
+                <button
+                  onClick={async () => {
+                    setCopyMenuOpen(false)
+                    try {
+                      await onDuplicateToToday(templates)
+                      showToast('오늘 운동에 추가됨')
+                    } catch {
+                      showToast('복제 실패')
+                    }
+                  }}
+                  className="w-full py-2.5 rounded-lg bg-accent text-white font-medium"
+                >
+                  오늘 운동에 복제
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Toast */}
+      {toastMsg && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <span className="bg-foreground/80 text-white text-xs px-3 py-1.5 rounded-full">복사됨</span>
+          <span className="bg-foreground/80 text-white text-xs px-3 py-1.5 rounded-full">{toastMsg}</span>
         </div>
       )}
       {/* Exercise search modal */}
@@ -1110,7 +1165,10 @@ const WorkoutSection = memo(WorkoutSectionInner, (prev, next) => {
   return (
     prev.userId === next.userId &&
     prev.section === next.section &&
+    prev.displayName === next.displayName &&
     prev.date === next.date &&
+    !!prev.onDelete === !!next.onDelete &&
+    !!prev.onDuplicateToToday === !!next.onDuplicateToToday &&
     prev.templates.length === next.templates.length &&
     prev.templates.every((t, i) => t.id === next.templates[i].id) &&
     logsEqual(prev.logs, next.logs)

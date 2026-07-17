@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Trophy } from 'lucide-react'
 import WorkoutSection from '@/components/workout/WorkoutSection'
 import CustomWorkoutForm from '@/components/workout/CustomWorkoutForm'
 import Calculator from '@/components/workout/Calculator'
-import { getTemplatesByDate, getTemplateDatesByRange, type WorkoutTemplate } from '@/lib/api/workout-templates'
+import { getTemplatesByDate, getTemplateDatesByRange, getExtraTemplatesByDate, duplicateSectionToToday, deleteExtraGroup, type WorkoutTemplate } from '@/lib/api/workout-templates'
 import { getLogsByDate, type WorkoutLog } from '@/lib/api/workout-logs'
 import { getCompetitionByDate, type Competition } from '@/lib/api/competitions'
 import { getToday, getWeekDays, WEEK_DAY_LABELS } from '@/lib/date-utils'
@@ -17,6 +17,7 @@ const emptyLogs: WorkoutLog[] = []
 // Client-side cache for date data (survives date switching within session)
 const dateCache = new Map<string, {
   templates: WorkoutTemplate[]
+  extras: WorkoutTemplate[]
   logs: WorkoutLog[]
   customLogs: WorkoutLog[]
   competition: Competition | null
@@ -28,6 +29,7 @@ function WorkoutContent() {
   const dateParam = searchParams.get('date') || getToday()
   const [date, setDate] = useState(dateParam)
   const [templates, setTemplates] = useState<WorkoutTemplate[]>([])
+  const [extras, setExtras] = useState<WorkoutTemplate[]>([])
   const [logs, setLogs] = useState<WorkoutLog[]>([])
   const [customLogs, setCustomLogs] = useState<WorkoutLog[]>([])
   const [competition, setCompetition] = useState<Competition | null>(null)
@@ -47,10 +49,10 @@ function WorkoutContent() {
   }, [weekDays[0]]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = useCallback(async () => {
-    // Use cache for instant display
     const cached = dateCache.get(date)
     if (cached) {
       setTemplates(cached.templates)
+      setExtras(cached.extras)
       setLogs(cached.logs)
       setCustomLogs(cached.customLogs)
       setCompetition(cached.competition)
@@ -58,18 +60,19 @@ function WorkoutContent() {
 
     setLoading(!cached)
     try {
-      const [tpls, lgs, comp] = await Promise.all([
+      const [tpls, ext, lgs, comp] = await Promise.all([
         getTemplatesByDate(date),
+        getExtraTemplatesByDate(date),
         getLogsByDate(userId, date),
         getCompetitionByDate(userId, date),
       ])
       const templateLogs = lgs.filter(l => !l.is_custom)
       const custom = lgs.filter(l => l.is_custom)
 
-      // Update cache
-      dateCache.set(date, { templates: tpls, logs: templateLogs, customLogs: custom, competition: comp })
+      dateCache.set(date, { templates: tpls, extras: ext, logs: templateLogs, customLogs: custom, competition: comp })
 
       setTemplates(tpls)
+      setExtras(ext)
       setLogs(templateLogs)
       setCustomLogs(custom)
       setCompetition(comp)
@@ -77,6 +80,7 @@ function WorkoutContent() {
       console.error('Failed to load workout data:', err)
       if (!cached) {
         setTemplates([])
+        setExtras([])
         setLogs([])
         setCustomLogs([])
         setCompetition(null)
@@ -129,6 +133,43 @@ function WorkoutContent() {
     setCustomLogs(prev => [...prev, log])
   }
 
+  const handleDuplicateToToday = useCallback(async (tpls: WorkoutTemplate[]) => {
+    const created = await duplicateSectionToToday(tpls)
+    const today = getToday()
+    if (date === today) {
+      setExtras(prev => {
+        const next = [...prev, ...created]
+        const cached = dateCache.get(date)
+        if (cached) dateCache.set(date, { ...cached, extras: next })
+        return next
+      })
+    } else {
+      dateCache.delete(today)
+    }
+  }, [date])
+
+  const handleExtraDelete = useCallback(async (groupId: string) => {
+    let removed: WorkoutTemplate[] = []
+    setExtras(prev => {
+      removed = prev.filter(t => t.extra_group_id === groupId)
+      const next = prev.filter(t => t.extra_group_id !== groupId)
+      const cached = dateCache.get(date)
+      if (cached) dateCache.set(date, { ...cached, extras: next })
+      return next
+    })
+    try {
+      await deleteExtraGroup(groupId)
+    } catch (err) {
+      console.error('Failed to delete extra group:', err)
+      setExtras(prev => {
+        const next = [...prev, ...removed]
+        const cached = dateCache.get(date)
+        if (cached) dateCache.set(date, { ...cached, extras: next })
+        return next
+      })
+    }
+  }, [date])
+
   // Group templates by section (preserve order) — memoized
   const sections = useMemo(() => {
     const result: { section: string; templates: WorkoutTemplate[] }[] = []
@@ -153,6 +194,32 @@ function WorkoutContent() {
     }
     return result
   }, [sections, logs])
+
+  // Group extras by extra_group_id (already ordered by extra_order → sort_order)
+  const extraGroups = useMemo(() => {
+    const result: { extraGroupId: string; templates: WorkoutTemplate[] }[] = []
+    const map = new Map<string, WorkoutTemplate[]>()
+    for (const t of extras) {
+      const key = t.extra_group_id
+      if (key == null) continue
+      if (!map.has(key)) {
+        const items: WorkoutTemplate[] = []
+        map.set(key, items)
+        result.push({ extraGroupId: key, templates: items })
+      }
+      map.get(key)!.push(t)
+    }
+    return result
+  }, [extras])
+
+  const extraLogs = useMemo(() => {
+    const result = new Map<string, WorkoutLog[]>()
+    for (const g of extraGroups) {
+      const ids = new Set(g.templates.map(t => t.id))
+      result.set(g.extraGroupId, logs.filter(l => l.template_id && ids.has(l.template_id)))
+    }
+    return result
+  }, [extraGroups, logs])
 
   // Progress
   const workoutSections = sections.filter(s => !s.templates.every(t => t.workout_type === 'note'))
@@ -282,6 +349,7 @@ function WorkoutContent() {
               logs={sectionLogs.get(section) ?? emptyLogs}
               date={date}
               onLogUpdate={handleLogUpdate}
+              onDuplicateToToday={handleDuplicateToToday}
             />
           )
         })
@@ -290,6 +358,20 @@ function WorkoutContent() {
           등록된 운동이 없습니다
         </div>
       )}
+      {extraGroups.map(g => (
+        <WorkoutSection
+          key={g.extraGroupId}
+          userId={userId}
+          section="추가운동"
+          displayName="추가운동"
+          templates={g.templates}
+          logs={extraLogs.get(g.extraGroupId) ?? emptyLogs}
+          date={date}
+          onLogUpdate={handleLogUpdate}
+          onDuplicateToToday={handleDuplicateToToday}
+          onDelete={() => handleExtraDelete(g.extraGroupId)}
+        />
+      ))}
       </div>
 
       {/* Custom workout logs */}
