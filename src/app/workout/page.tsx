@@ -149,8 +149,9 @@ function WorkoutContent() {
   }, [date])
 
   const handleExtraDelete = useCallback(async (groupId: string) => {
-    const snapshot = extras
+    let removed: WorkoutTemplate[] = []
     setExtras(prev => {
+      removed = prev.filter(t => t.extra_group_id === groupId)
       const next = prev.filter(t => t.extra_group_id !== groupId)
       const cached = dateCache.get(date)
       if (cached) dateCache.set(date, { ...cached, extras: next })
@@ -160,11 +161,14 @@ function WorkoutContent() {
       await deleteExtraGroup(groupId)
     } catch (err) {
       console.error('Failed to delete extra group:', err)
-      setExtras(snapshot)
-      const cached = dateCache.get(date)
-      if (cached) dateCache.set(date, { ...cached, extras: snapshot })
+      setExtras(prev => {
+        const next = [...prev, ...removed]
+        const cached = dateCache.get(date)
+        if (cached) dateCache.set(date, { ...cached, extras: next })
+        return next
+      })
     }
-  }, [extras, date])
+  }, [date])
 
   // Group templates by section (preserve order) — memoized
   const sections = useMemo(() => {
@@ -196,7 +200,8 @@ function WorkoutContent() {
     const result: { extraGroupId: string; templates: WorkoutTemplate[] }[] = []
     const map = new Map<string, WorkoutTemplate[]>()
     for (const t of extras) {
-      const key = t.extra_group_id as string
+      const key = t.extra_group_id
+      if (key == null) continue
       if (!map.has(key)) {
         const items: WorkoutTemplate[] = []
         map.set(key, items)
