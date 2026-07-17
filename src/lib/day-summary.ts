@@ -189,6 +189,7 @@ export function reconcileSummary(
 
   let text = stored.text
   const blocks: DaySummaryBlock[] = stored.blocks.map(b => ({ ...b, template_ids: [...b.template_ids] }))
+  let dirty = false
 
   // 1) 신규 완료 흡수 (섹션 순서 삽입)
   const reflected = new Set(blocks.flatMap(b => b.template_ids))
@@ -207,6 +208,7 @@ export function reconcileSummary(
     }
     const snippet = genSectionBlock(s, ids, templateById, logByTemplate)
     const block: DaySummaryBlock = { key: s, template_ids: ids, sig: sigOf(ids, logByTemplate), auto_snippet: snippet }
+    dirty = true
     const laterIdx = blocks.findIndex(b => cmp(b.key, s) > 0)
     if (laterIdx === -1) {
       text = text ? text + '\n\n' + snippet : snippet
@@ -236,12 +238,13 @@ export function reconcileSummary(
         text = text ? text + '\n\n' + newSnippet : newSnippet
       }
       b.auto_snippet = newSnippet
+      dirty = true
     }
     b.sig = newSig
   }
 
-  // 3) 과도한 빈 줄 정리
-  text = text.replace(/\n{3,}/g, '\n\n').trim()
+  // 3) 과도한 빈 줄 정리 (실제로 text를 바꿨을 때만 — 사용자 공백 편집 보존)
+  if (dirty) text = text.replace(/\n{3,}/g, '\n\n').trim()
 
   return { text, blocks }
 }
