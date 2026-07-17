@@ -157,6 +157,17 @@ function sigOf(includedIds: string[], logByTemplate: Map<string, WorkoutLog>): s
   return JSON.stringify(entries)
 }
 
+/**
+ * 그룹 키: 코치 섹션은 section("A"..), 추가운동은 extra_group_id로 구분
+ * (모든 추가운동이 section='추가운동'이라 section으로 묶으면 하나로 합쳐져 헤더가 1개만 생김).
+ */
+const groupKeyOf = (t: WorkoutTemplate): string => t.extra_group_id ?? t.section
+/** 정렬 키(ASCII로 충돌 없이): 코치 섹션 먼저('0'+section), 그 뒤 추가운동을 extra_order 순('1'+order)으로. */
+const orderKeyOf = (t: WorkoutTemplate): string =>
+  t.extra_group_id
+    ? '1' + String(t.extra_order ?? 0).padStart(6, '0') + t.extra_group_id
+    : '0' + t.section
+
 /** stored를 base로, 현재 templates/logs를 반영한 새 문서를 반환(멱등). */
 export function reconcileSummary(
   stored: DaySummary | null,
@@ -169,20 +180,27 @@ export function reconcileSummary(
   const completedIds = logs
     .filter(l => l.template_id && l.completed && templateById.has(l.template_id))
     .map(l => l.template_id as string)
-  const cmp = (a: string, b: string) => a.localeCompare(b)
 
-  // 문서 없음 → 완료된 것만으로 전체 생성 (리셋과 동일)
+  // 문서 없음 → 완료된 것만으로 전체 생성 (리셋과 동일). 그룹 단위(코치 섹션/추가운동 그룹)로 분리.
   if (!stored) {
-    const sections = [...new Set(completedIds.map(id => templateById.get(id)!.section))].sort(cmp)
+    const groups = new Map<string, string[]>()
+    for (const id of completedIds) {
+      const k = groupKeyOf(templateById.get(id)!)
+      if (!groups.has(k)) groups.set(k, [])
+      groups.get(k)!.push(id)
+    }
+    const ordered = [...groups.entries()].sort((a, b) =>
+      orderKeyOf(templateById.get(a[1][0])!).localeCompare(orderKeyOf(templateById.get(b[1][0])!)))
     const blocks: DaySummaryBlock[] = []
     const parts: string[] = []
-    for (const s of sections) {
-      const ids = completedIds
-        .filter(id => templateById.get(id)!.section === s)
-        .sort((a, b) => templateById.get(a)!.sort_order - templateById.get(b)!.sort_order)
-      const snippet = genSectionBlock(s, ids, templateById, logByTemplate)
+    for (const [k, idsRaw] of ordered) {
+      const ids = idsRaw.sort((x, y) => templateById.get(x)!.sort_order - templateById.get(y)!.sort_order)
+      const t0 = templateById.get(ids[0])!
+      const header = t0.section
+      const order = orderKeyOf(t0)
+      const snippet = genSectionBlock(header, ids, templateById, logByTemplate)
       parts.push(snippet)
-      blocks.push({ key: s, template_ids: ids, sig: sigOf(ids, logByTemplate), auto_snippet: snippet })
+      blocks.push({ key: k, header, order, template_ids: ids, sig: sigOf(ids, logByTemplate), auto_snippet: snippet })
     }
     return { text: parts.join('\n\n'), blocks }
   }
@@ -190,26 +208,35 @@ export function reconcileSummary(
   let text = stored.text
   const blocks: DaySummaryBlock[] = stored.blocks.map(b => ({ ...b, template_ids: [...b.template_ids] }))
   let dirty = false
+  // 구버전 블록(order 없음) 호환: 템플릿에서 정렬 키를 일관되게 유도
+  const orderOf = (b: DaySummaryBlock): string => {
+    if (b.order != null) return b.order
+    const t = templateById.get(b.template_ids[0])
+    return t ? orderKeyOf(t) : b.key
+  }
 
-  // 1) 신규 완료 흡수 (섹션 순서 삽입)
+  // 1) 신규 완료 흡수 (그룹 단위, 정렬 순서 삽입)
   const reflected = new Set(blocks.flatMap(b => b.template_ids))
   const newIds = completedIds.filter(id => !reflected.has(id))
-  const bySection = new Map<string, string[]>()
+  const byGroup = new Map<string, string[]>()
   for (const id of newIds) {
-    const s = templateById.get(id)!.section
-    if (!bySection.has(s)) bySection.set(s, [])
-    bySection.get(s)!.push(id)
+    const k = groupKeyOf(templateById.get(id)!)
+    if (!byGroup.has(k)) byGroup.set(k, [])
+    byGroup.get(k)!.push(id)
   }
-  for (const [s, ids] of bySection) {
-    const existing = blocks.find(b => b.key === s)
+  for (const [k, ids] of byGroup) {
+    const existing = blocks.find(b => b.key === k)
     if (existing) {
       existing.template_ids.push(...ids) // 멤버십 증가 → 2단계에서 재생성
       continue
     }
-    const snippet = genSectionBlock(s, ids, templateById, logByTemplate)
-    const block: DaySummaryBlock = { key: s, template_ids: ids, sig: sigOf(ids, logByTemplate), auto_snippet: snippet }
+    const t0 = templateById.get(ids[0])!
+    const header = t0.section
+    const order = orderKeyOf(t0)
+    const snippet = genSectionBlock(header, ids, templateById, logByTemplate)
+    const block: DaySummaryBlock = { key: k, header, order, template_ids: ids, sig: sigOf(ids, logByTemplate), auto_snippet: snippet }
     dirty = true
-    const laterIdx = blocks.findIndex(b => cmp(b.key, s) > 0)
+    const laterIdx = blocks.findIndex(b => orderOf(b).localeCompare(order) > 0)
     if (laterIdx === -1) {
       text = text ? text + '\n\n' + snippet : snippet
       blocks.push(block)
@@ -225,11 +252,11 @@ export function reconcileSummary(
     }
   }
 
-  // 2) 데이터 변경/멤버십 증가 섹션 재생성 (데이터가 이김)
+  // 2) 데이터 변경/멤버십 증가 블록 재생성 (데이터가 이김)
   for (const b of blocks) {
     const newSig = sigOf(b.template_ids, logByTemplate)
     if (newSig === b.sig) continue
-    const newSnippet = genSectionBlock(b.key, b.template_ids, templateById, logByTemplate)
+    const newSnippet = genSectionBlock(b.header ?? b.key, b.template_ids, templateById, logByTemplate)
     if (newSnippet !== b.auto_snippet) {
       const pos = text.indexOf(b.auto_snippet)
       if (pos !== -1) {

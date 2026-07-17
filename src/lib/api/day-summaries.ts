@@ -1,7 +1,9 @@
 import { supabase } from '@/lib/supabase'
 
 export interface DaySummaryBlock {
-  key: string
+  key: string          // grouping id: coach → section("A"..), extra → extra_group_id
+  header?: string      // display header text ("추가운동" for extras, section letter for coach)
+  order?: string       // sort key: coach sections first, then extras by extra_order
   template_ids: string[]
   sig: string
   auto_snippet: string
