@@ -17,6 +17,7 @@ import {
 import { getToday, getWeekdaysInMonth, getDday } from '@/lib/date-utils'
 import { getLoggedInUser } from '@/lib/auth'
 import TodaySummary from '@/components/home/TodaySummary'
+import { getDaySummary, upsertDaySummary, type DaySummary, type DaySummaryBlock } from '@/lib/api/day-summaries'
 
 export default function HomePage() {
   const router = useRouter()
@@ -32,8 +33,14 @@ export default function HomePage() {
   const [editComp, setEditComp] = useState<Competition | null>(null)
   const [todayTemplates, setTodayTemplates] = useState<WorkoutTemplate[]>([])
   const [todayLogs, setTodayLogs] = useState<WorkoutLog[]>([])
+  const [todaySummary, setTodaySummary] = useState<DaySummary | null>(null)
 
   const todayStr = getToday()
+
+  const handleSummarySave = useCallback((text: string, blocks: DaySummaryBlock[]) => {
+    upsertDaySummary(userId, todayStr, text, blocks).catch(err =>
+      console.error('Failed to save day summary:', err))
+  }, [userId, todayStr])
 
   const loadData = useCallback(async () => {
     if (!userId) return
@@ -56,9 +63,11 @@ export default function HomePage() {
       getTemplatesByDate(todayStr),
       getExtraTemplatesByDate(todayStr),
       getLogsByDate(userId, todayStr),
-    ]).then(([tTemplates, tExtras, tLogs]) => {
+      getDaySummary(userId, todayStr).catch(() => null),
+    ]).then(([tTemplates, tExtras, tLogs, tSummary]) => {
       setTodayTemplates([...tTemplates, ...tExtras])
       setTodayLogs(tLogs)
+      setTodaySummary(tSummary)
     }).catch(err => {
       console.error('Failed to load today summary:', err)
     })
@@ -176,7 +185,12 @@ export default function HomePage() {
       )}
 
       {/* Today's Workout Summary */}
-      <TodaySummary templates={todayTemplates} logs={todayLogs} />
+      <TodaySummary
+        templates={todayTemplates}
+        logs={todayLogs}
+        stored={todaySummary}
+        onSave={handleSummarySave}
+      />
 
       {/* Competition Modal */}
       <CompetitionModal
