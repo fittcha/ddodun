@@ -181,7 +181,7 @@ interface WorkoutSectionProps {
 
 - 복제 insert 실패: 토스트로 실패 알림, 낙관적 append 롤백(또는 append 안 함).
 - 삭제 실패: `extras` 상태 복구, 실패 토스트.
-- 마이그레이션 미실행 상태: insert/select가 컬럼 없음 에러 → 콘솔 로깅 + 기능 무동작(기존 화면은 정상). 구현 완료 후 사용자에게 SQL 실행 안내.
+- ⚠️ **배포는 반드시 마이그레이션 먼저**: `getTemplatesByDate`가 `.is('extra_group_id', null)`로 새 컬럼을 참조하므로, 마이그레이션 미실행 상태에서 코드가 배포되면 이 함수를 호출하는 **기존 화면까지 깨진다**(운동 페이지 `page.tsx`, 홈 요약 `src/app/page.tsx`의 `TodaySummary`). 즉 새 기능만 무동작하는 게 아니라 워크아웃 조회 전반이 컬럼 없음 에러를 낸다. 따라서 `migration-extra-workout.sql`은 코드 배포 전(또는 동시)에 Supabase에서 실행되어야 하며, 이는 신규 기능 전용이 아니라 워크아웃 화면 전체의 선행조건이다.
 
 ## 9. 테스트 계획
 
