@@ -10,10 +10,10 @@ INSERT INTO ddodun.workout_templates (date, day_of_week, section, workout_type, 
 -- TUE 2026-07-21
 INSERT INTO ddodun.workout_templates (date, day_of_week, section, workout_type, title, description, sort_order) VALUES
 ('2026-07-21', 'TUE', 'A', 'weightlifting', NULL, E'Every 1:30 x 6\n1 Squat Clean\n1 Hang Squat Clean\n2 Split Jerk\n* Load : 80~85%', 1),
-('2026-07-21', 'TUE', 'A', 'weightlifting', NULL, E'— into —\nEvery 2:00 x 3\n3 x 2 Clean Pull @ 105%', 2),
-('2026-07-21', 'TUE', 'A', 'weightlifting', NULL, E'— into —\nEvery 2:00 x 3\n3 Front Squat @ 75~85%', 3),
+('2026-07-21', 'TUE', 'A', 'weightlifting', NULL, E'— Followed by —\nEvery 2:00 x 3\n3 x 2 Clean Pull @ 105%', 2),
+('2026-07-21', 'TUE', 'A', 'weightlifting', NULL, E'— Followed by —\nEvery 2:00 x 3\n3 Front Squat @ 75~85%', 3),
 ('2026-07-21', 'TUE', 'B', 'weightlifting', 'Shoulder Press', E'5-3-1\nRest 2:00 b/w sets\n* Load : 65-75-85%', 4),
-('2026-07-21', 'TUE', 'B', 'skill', NULL, E'— into —\n6 Sets\n5 Tempo Deficit Kipping HSPU\n* 3''s Down / 2''s at Bottom / Fast Kip Up\n* Rest 1:30 b/w sets', 5),
+('2026-07-21', 'TUE', 'B', 'skill', NULL, E'— Followed by —\n6 Sets\n5 Tempo Deficit Kipping HSPU\n* 3''s Down / 2''s at Bottom / Fast Kip Up\n* Rest 1:30 b/w sets', 5),
 ('2026-07-21', 'TUE', 'C', 'accessory', NULL, E'3 Sets\n30m Husafell Bag Bearhug Carry 150lb\nRest 0:30\n20 Alter Landmine Rotations\nRest 0:30\n0:30 Hollow Body Flutter Kicks\nRest 2:00', 6),
 ('2026-07-21', 'TUE', 'D', 'metcon', NULL, E'4 Sets @ Hard Effort\n500m Standing Bike-erg\n15 Burpee Box Jump Overs 20inch\n* Rest 3:00 b/w sets', 7);
 
@@ -39,7 +39,7 @@ INSERT INTO ddodun.workout_templates (date, day_of_week, section, workout_type, 
 -- FRI 2026-07-24
 INSERT INTO ddodun.workout_templates (date, day_of_week, section, workout_type, title, description, sort_order) VALUES
 ('2026-07-24', 'FRI', 'A', 'strength', NULL, E'6 Sets\n5 Bench Press @ 75%\n* Rest 2:00 b/w sets', 1),
-('2026-07-24', 'FRI', 'A', 'strength', NULL, E'— into —\n6 Sets\n5 Deadlift @ 75%\n* Rest 2:00 b/w sets', 2),
+('2026-07-24', 'FRI', 'A', 'strength', NULL, E'— Followed by —\n6 Sets\n5 Deadlift @ 75%\n* Rest 2:00 b/w sets', 2),
 ('2026-07-24', 'FRI', 'B', 'accessory', NULL, E'3 Sets\n6-10 Strict Chins ups\nRest 1:00\n12 Barbell Z-Press\nRest 1:00\n18~24 DB Cross Raises\nRest 2:00', 3),
 ('2026-07-24', 'FRI', 'C', 'metcon', 'EMOM 21', E'9 Cal Ski-erg\n15 Toes to bar\n8 DB(2) Box Step Overs\n* DB 35lb / Box 20inch', 4),
 ('2026-07-24', 'FRI', 'D', 'accessory', NULL, E'4 Sets\n10 Plate Turkish Sit ups\n1:00 Elbow Plank Hold\nRest 2:00', 5),

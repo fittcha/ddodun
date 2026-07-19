@@ -87,6 +87,7 @@ function parseDescription(desc: string | null): {
       || /^\d+\s*x\s/i.test(line)
       || (dashRepCount > 1 && dashRepPattern.test(line))
       || /^[-—]\s*\w*\s*into\s*[-—]/i.test(line)
+      || /^[-—]?\s*followed\s+by\s*[-—]?$/i.test(line)
     ) {
       notes.push(line)
       orderedLines.push({ text: line, type: 'note' })
@@ -172,7 +173,7 @@ function computeGroups(templates: WorkoutTemplate[]): TemplateGroup[] {
 
   for (let idx = 0; idx < templates.length; idx++) {
     const parsed = parseDescription(templates[idx].description)
-    const hasLeadingRest = parsed.orderedLines.length > 0 && parsed.orderedLines[0].type === 'note' && (/^Rest\s+/i.test(parsed.orderedLines[0].text) || /^[-—]\s*\w*\s*into\s*[-—]/i.test(parsed.orderedLines[0].text) || /and\s+then/i.test(parsed.orderedLines[0].text))
+    const hasLeadingRest = parsed.orderedLines.length > 0 && parsed.orderedLines[0].type === 'note' && (/^Rest\s+/i.test(parsed.orderedLines[0].text) || /^[-—]\s*\w*\s*into\s*[-—]/i.test(parsed.orderedLines[0].text) || /and\s+then/i.test(parsed.orderedLines[0].text) || /followed\s+by/i.test(parsed.orderedLines[0].text))
     const showSeparator = idx > 0 && (parsed.setInfo || hasLeadingRest)
 
     if (showSeparator && current.length > 0) {
@@ -189,7 +190,7 @@ function computeGroups(templates: WorkoutTemplate[]): TemplateGroup[] {
       const prevTemplate = templates[idx - 1]
       const prevParsed = parseDescription(prevTemplate.description)
       const restNote = prevParsed.notes.find(n => /rest\s+as\s+needed/i.test(n)) || null
-      const leadingRest = parsed.orderedLines.length > 0 && parsed.orderedLines[0].type === 'note' && (/^Rest\s+/i.test(parsed.orderedLines[0].text) || /^[-—]\s*\w*\s*into\s*[-—]/i.test(parsed.orderedLines[0].text) || /and\s+then/i.test(parsed.orderedLines[0].text))
+      const leadingRest = parsed.orderedLines.length > 0 && parsed.orderedLines[0].type === 'note' && (/^Rest\s+/i.test(parsed.orderedLines[0].text) || /^[-—]\s*\w*\s*into\s*[-—]/i.test(parsed.orderedLines[0].text) || /and\s+then/i.test(parsed.orderedLines[0].text) || /followed\s+by/i.test(parsed.orderedLines[0].text))
         ? parsed.orderedLines[0].text : null
 
       current = [templates[idx]]
@@ -812,7 +813,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
               const unit = getUnit(template.id)
 
               const titleIsSection = isSectionTitle(template.title)
-              const leadingRest = parsed.orderedLines.length > 0 && parsed.orderedLines[0].type === 'note' && (/^Rest\s+/i.test(parsed.orderedLines[0].text) || /^[-—]\s*\w*\s*into\s*[-—]/i.test(parsed.orderedLines[0].text) || /and\s+then/i.test(parsed.orderedLines[0].text))
+              const leadingRest = parsed.orderedLines.length > 0 && parsed.orderedLines[0].type === 'note' && (/^Rest\s+/i.test(parsed.orderedLines[0].text) || /^[-—]\s*\w*\s*into\s*[-—]/i.test(parsed.orderedLines[0].text) || /and\s+then/i.test(parsed.orderedLines[0].text) || /followed\s+by/i.test(parsed.orderedLines[0].text))
                 ? parsed.orderedLines[0].text : null
 
               return (
