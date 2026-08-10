@@ -27,18 +27,21 @@ const HEADERS = {
 async function all(path, order) {
   const rows = []
   const STEP = 1000
-  for (let from = 0; ; from += STEP) {
+  for (let from = 0; ; ) {
     const res = await fetch(`${URL_BASE}/${path}&order=${order}`, {
       headers: { ...HEADERS, Range: `${from}-${from + STEP - 1}`, Prefer: 'count=exact' },
     })
     if (!res.ok) throw new Error(`${path}: ${res.status} ${await res.text()}`)
     const page = await res.json()
     rows.push(...page)
-    // 서버가 요청한 페이지 크기(STEP)보다 적게 줄 수도 있으므로(db-max-rows 설정 등),
+    if (page.length === 0) break
+    // 다음 요청은 반드시 "실제로 받은 마지막 행 바로 다음"부터 시작해야 한다.
+    // 서버가 요청한 페이지 크기(STEP)보다 적게 줄 수 있으므로(db-max-rows 설정 등),
+    // 요청 크기(STEP)가 아니라 실제로 받은 행 수(page.length)만큼만 전진한다.
+    from += page.length
     // 짧은 페이지만으로 종료를 판단하지 않고 Content-Range의 전체 개수와 비교한다.
     const contentRange = res.headers.get('content-range') // 예: "0-999/741"
     const total = contentRange ? Number(contentRange.split('/')[1]) : NaN
-    if (page.length === 0) break
     if (!Number.isNaN(total)) {
       if (rows.length >= total) break
     } else if (page.length < STEP) {
