@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - 원본 스펙: `docs/superpowers/specs/2026-08-10-coach-athlete-platform-design.md`
-- **기존 `workout_templates` 741행의 `id`는 절대 변경·삭제하지 않는다.** 로그 656행과 `workout_day_summaries.blocks[].template_ids`가 이 id를 참조한다.
+- **기존 `workout_templates` 741행의 `id`는 절대 변경·삭제하지 않는다.** 로그(사전 스냅샷 기준)와 `workout_day_summaries.blocks[].template_ids`가 이 id를 참조한다.
 - 새 npm 의존성 금지. 암호화는 `node:crypto`, 테스트는 `node:test`만 사용한다.
 - 테스트 파일은 소스 옆에 `*.test.ts`로 두고 **상대 경로로 import 한다** (`./session.ts`). `@/` 별칭은 `node --test`에서 해석되지 않는다.
 - 서버 전용 모듈은 `src/lib/server/` 아래에만 두고, 클라이언트 컴포넌트에서 import 하지 않는다.
@@ -1055,7 +1055,9 @@ if (noOwner.length > 0) {
 
 Run: `node scripts/snapshot-invariants.mjs /tmp/ddodun-before.json`
 
-Expected: 종료코드 0, `templates: 741`, `programTemplates: 735`, `extraTemplates: 6`, `logs: 656`, `danglingLogs: []`, `danglingSummaryRefs: []`
+Expected: 종료코드 0, `danglingLogs: []`, `danglingSummaryRefs: []`
+
+**행 수를 상수로 고정하지 말 것.** DB는 사용자가 앱을 쓰는 동안 계속 변한다(실제로 이 계획 실행 중 로그가 656→659로 늘었다). 검증의 근거는 절대 수치가 아니라 **사전/사후 스냅샷 비교**다. 사전 스냅샷은 마이그레이션 **직전에** 다시 떠야 하며, 그 사이에 앱을 사용하면 안 된다.
 
 종료코드가 2면 **여기서 멈추고** 출력된 행을 사람이 확인한 뒤 마이그레이션 SQL의 5단계를 그에 맞게 조정한다.
 
