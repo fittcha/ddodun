@@ -10,7 +10,7 @@ export async function GET(
     const { year, month } = await ctx.params
     const y = Number(year)
     const m = Number(month)
-    if (!Number.isInteger(y) || !Number.isInteger(m) || m < 1 || m > 12) {
+    if (!Number.isInteger(y) || !Number.isInteger(m) || y < 1000 || y > 9999 || m < 1 || m > 12) {
       return Response.json({ error: 'bad request' }, { status: 400 })
     }
     const start = `${y}-${String(m).padStart(2, '0')}-01`

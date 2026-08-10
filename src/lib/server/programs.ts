@@ -76,7 +76,7 @@ export async function resolveExtras(athleteId: string, date: string): Promise<Wo
   return (data ?? []) as WorkoutTemplate[]
 }
 
-/** 기간 내에 선수에게 운동이 배정된 날짜 목록. */
+/** 기간 내에 선수에게 운동이 배정된 날짜 목록. 배정된 프로그램 + 본인 소유 추가운동의 합집합. */
 export async function resolveTemplateDates(
   athleteId: string,
   startDate: string,
@@ -89,18 +89,32 @@ export async function resolveTemplateDates(
   if (aErr) throw aErr
 
   const versionIds = (assigns ?? []).map(a => a.version_id)
-  if (versionIds.length === 0) return []
 
-  const { data, error } = await db
-    .from('program_version_templates')
-    .select('workout_templates!inner(date)')
-    .in('version_id', versionIds)
-    .gte('workout_templates.date', startDate)
-    .lte('workout_templates.date', endDate)
-  if (error) throw error
+  let programDates: string[] = []
+  if (versionIds.length > 0) {
+    const { data, error } = await db
+      .from('program_version_templates')
+      .select('workout_templates!inner(date)')
+      .in('version_id', versionIds)
+      .gte('workout_templates.date', startDate)
+      .lte('workout_templates.date', endDate)
+    if (error) throw error
 
-  const dates = (data ?? []).map(
-    r => (r as unknown as { workout_templates: { date: string } }).workout_templates.date,
-  )
-  return [...new Set(dates)].sort()
+    programDates = (data ?? []).map(
+      r => (r as unknown as { workout_templates: { date: string } }).workout_templates.date,
+    )
+  }
+
+  // 프로그램 버전에 연결되지 않는 개인 추가운동은 별도로 조회해 합쳐야 한다.
+  const { data: extraRows, error: eErr } = await db
+    .from('workout_templates')
+    .select('date')
+    .eq('owner_user_id', athleteId)
+    .not('extra_group_id', 'is', null)
+    .gte('date', startDate)
+    .lte('date', endDate)
+  if (eErr) throw eErr
+  const extraDates = (extraRows ?? []).map(r => r.date)
+
+  return [...new Set([...programDates, ...extraDates])].sort()
 }
