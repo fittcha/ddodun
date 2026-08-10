@@ -18,60 +18,35 @@ export interface WorkoutTemplate {
   sort_order: number
   extra_group_id: string | null
   extra_order: number | null
+  owner_user_id: string | null
+}
+
+async function getJson<T>(url: string): Promise<T> {
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`${url}: ${res.status}`)
+  return res.json()
 }
 
 export async function getTemplateDatesByMonth(year: number, month: number): Promise<string[]> {
-  const startDate = `${year}-${String(month).padStart(2, '0')}-01`
-  const endDate = month === 12
-    ? `${year + 1}-01-01`
-    : `${year}-${String(month + 1).padStart(2, '0')}-01`
-
-  const { data, error } = await supabase
-    .from('workout_templates')
-    .select('date')
-    .gte('date', startDate)
-    .lt('date', endDate)
-
-  if (error) throw error
-  const unique = [...new Set((data || []).map(d => d.date))]
-  return unique
+  const { dates } = await getJson<{ dates: string[] }>(`/api/calendar/${year}/${month}`)
+  return dates
 }
 
 export async function getTemplateDatesByRange(startDate: string, endDate: string): Promise<string[]> {
-  const { data, error } = await supabase
-    .from('workout_templates')
-    .select('date')
-    .gte('date', startDate)
-    .lte('date', endDate)
-
-  if (error) throw error
-  return [...new Set((data || []).map(d => d.date))]
+  const { dates } = await getJson<{ dates: string[] }>(
+    `/api/calendar/range?start=${startDate}&end=${endDate}`,
+  )
+  return dates
 }
 
 export async function getTemplatesByDate(date: string): Promise<WorkoutTemplate[]> {
-  const { data, error } = await supabase
-    .from('workout_templates')
-    .select('*')
-    .eq('date', date)
-    .is('extra_group_id', null)
-    .order('section')
-    .order('sort_order')
-
-  if (error) throw error
-  return data || []
+  const { templates } = await getJson<{ templates: WorkoutTemplate[] }>(`/api/workouts/${date}`)
+  return templates
 }
 
 export async function getExtraTemplatesByDate(date: string): Promise<WorkoutTemplate[]> {
-  const { data, error } = await supabase
-    .from('workout_templates')
-    .select('*')
-    .eq('date', date)
-    .not('extra_group_id', 'is', null)
-    .order('extra_order')
-    .order('sort_order')
-
-  if (error) throw error
-  return data || []
+  const { extras } = await getJson<{ extras: WorkoutTemplate[] }>(`/api/workouts/${date}`)
+  return extras
 }
 
 const DOW_CODES = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
