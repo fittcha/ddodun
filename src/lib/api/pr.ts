@@ -1,5 +1,3 @@
-import { supabase } from '@/lib/supabase'
-
 // --- 1RM ---
 export interface OneRM {
   id: string
@@ -10,47 +8,27 @@ export interface OneRM {
   updated_at: string
 }
 
-export async function getAll1RM(userId: string): Promise<OneRM[]> {
-  const { data, error } = await supabase
-    .from('user_1rm')
-    .select('*')
-    .eq('user_id', userId)
-    .order('exercise_name')
-  if (error) throw error
-  return data || []
+export async function getAll1RM(): Promise<OneRM[]> {
+  const res = await fetch('/api/pr/onerm')
+  if (!res.ok) throw new Error(`getAll1RM: ${res.status}`)
+  const { records } = await res.json()
+  return records
 }
 
-export async function upsert1RM(userId: string, exerciseName: string, weight: number | null, weightUnit: string): Promise<OneRM> {
-  const { data: existing } = await supabase
-    .from('user_1rm')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('exercise_name', exerciseName)
-    .maybeSingle()
-
-  if (existing) {
-    const { data, error } = await supabase
-      .from('user_1rm')
-      .update({ weight, weight_unit: weightUnit, updated_at: new Date().toISOString() })
-      .eq('id', existing.id)
-      .select()
-      .single()
-    if (error) throw error
-    return data
-  } else {
-    const { data, error } = await supabase
-      .from('user_1rm')
-      .insert({ user_id: userId, exercise_name: exerciseName, weight, weight_unit: weightUnit })
-      .select()
-      .single()
-    if (error) throw error
-    return data
-  }
+export async function upsert1RM(exerciseName: string, weight: number | null, weightUnit: string): Promise<OneRM> {
+  const res = await fetch('/api/pr/onerm', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ exerciseName, weight, weightUnit }),
+  })
+  if (!res.ok) throw new Error(`upsert1RM: ${res.status}`)
+  const { record } = await res.json()
+  return record
 }
 
-export async function delete1RM(id: string) {
-  const { error } = await supabase.from('user_1rm').delete().eq('id', id)
-  if (error) throw error
+export async function delete1RM(id: string): Promise<void> {
+  const res = await fetch(`/api/pr/onerm?id=${id}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error(`delete1RM: ${res.status}`)
 }
 
 // --- nRM ---
@@ -64,49 +42,27 @@ export interface NRM {
   updated_at: string
 }
 
-export async function getAllNRM(userId: string): Promise<NRM[]> {
-  const { data, error } = await supabase
-    .from('user_nrm')
-    .select('*')
-    .eq('user_id', userId)
-    .order('rep_max')
-    .order('exercise_name')
-  if (error) throw error
-  return data || []
+export async function getAllNRM(): Promise<NRM[]> {
+  const res = await fetch('/api/pr/nrm')
+  if (!res.ok) throw new Error(`getAllNRM: ${res.status}`)
+  const { records } = await res.json()
+  return records
 }
 
-export async function upsertNRM(userId: string, exerciseName: string, repMax: number, weight: number | null, weightUnit: string): Promise<NRM> {
-  const { data: existing } = await supabase
-    .from('user_nrm')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('exercise_name', exerciseName)
-    .eq('rep_max', repMax)
-    .maybeSingle()
-
-  if (existing) {
-    const { data, error } = await supabase
-      .from('user_nrm')
-      .update({ weight, weight_unit: weightUnit, updated_at: new Date().toISOString() })
-      .eq('id', existing.id)
-      .select()
-      .single()
-    if (error) throw error
-    return data
-  } else {
-    const { data, error } = await supabase
-      .from('user_nrm')
-      .insert({ user_id: userId, exercise_name: exerciseName, rep_max: repMax, weight, weight_unit: weightUnit })
-      .select()
-      .single()
-    if (error) throw error
-    return data
-  }
+export async function upsertNRM(exerciseName: string, repMax: number, weight: number | null, weightUnit: string): Promise<NRM> {
+  const res = await fetch('/api/pr/nrm', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ exerciseName, repMax, weight, weightUnit }),
+  })
+  if (!res.ok) throw new Error(`upsertNRM: ${res.status}`)
+  const { record } = await res.json()
+  return record
 }
 
-export async function deleteNRM(id: string) {
-  const { error } = await supabase.from('user_nrm').delete().eq('id', id)
-  if (error) throw error
+export async function deleteNRM(id: string): Promise<void> {
+  const res = await fetch(`/api/pr/nrm?id=${id}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error(`deleteNRM: ${res.status}`)
 }
 
 // --- Pace Records ---
@@ -119,47 +75,25 @@ export interface PaceRecord {
   updated_at: string
 }
 
-export async function getAllPaceRecords(userId: string): Promise<PaceRecord[]> {
-  const { data, error } = await supabase
-    .from('user_pace_records')
-    .select('*')
-    .eq('user_id', userId)
-    .order('equipment')
-    .order('distance')
-  if (error) throw error
-  return data || []
+export async function getAllPaceRecords(): Promise<PaceRecord[]> {
+  const res = await fetch('/api/pr/pace')
+  if (!res.ok) throw new Error(`getAllPaceRecords: ${res.status}`)
+  const { records } = await res.json()
+  return records
 }
 
-export async function upsertPaceRecord(userId: string, equipment: string, distance: string, timeSeconds: number | null): Promise<PaceRecord> {
-  const { data: existing } = await supabase
-    .from('user_pace_records')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('equipment', equipment)
-    .eq('distance', distance)
-    .maybeSingle()
-
-  if (existing) {
-    const { data, error } = await supabase
-      .from('user_pace_records')
-      .update({ time_seconds: timeSeconds, updated_at: new Date().toISOString() })
-      .eq('id', existing.id)
-      .select()
-      .single()
-    if (error) throw error
-    return data
-  } else {
-    const { data, error } = await supabase
-      .from('user_pace_records')
-      .insert({ user_id: userId, equipment, distance, time_seconds: timeSeconds })
-      .select()
-      .single()
-    if (error) throw error
-    return data
-  }
+export async function upsertPaceRecord(equipment: string, distance: string, timeSeconds: number | null): Promise<PaceRecord> {
+  const res = await fetch('/api/pr/pace', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ equipment, distance, timeSeconds }),
+  })
+  if (!res.ok) throw new Error(`upsertPaceRecord: ${res.status}`)
+  const { record } = await res.json()
+  return record
 }
 
-export async function deletePaceRecord(id: string) {
-  const { error } = await supabase.from('user_pace_records').delete().eq('id', id)
-  if (error) throw error
+export async function deletePaceRecord(id: string): Promise<void> {
+  const res = await fetch(`/api/pr/pace?id=${id}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error(`deletePaceRecord: ${res.status}`)
 }

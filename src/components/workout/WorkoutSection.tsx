@@ -19,7 +19,7 @@ interface WorkoutSectionProps {
   onLogUpdate: (log: WorkoutLog) => void
   displayName?: string
   onDelete?: () => void
-  onDuplicateToToday?: (templates: WorkoutTemplate[]) => Promise<void> | void
+  onDuplicateToDate?: (templates: WorkoutTemplate[]) => Promise<void> | void
 }
 
 function parseDetail(raw: unknown): Record<string, unknown> {
@@ -212,7 +212,7 @@ function computeGroups(templates: WorkoutTemplate[]): TemplateGroup[] {
   return groups
 }
 
-function WorkoutSectionInner({ section, templates, logs, date, onLogUpdate, displayName, onDelete, onDuplicateToToday }: WorkoutSectionProps) {
+function WorkoutSectionInner({ section, templates, logs, date, onLogUpdate, displayName, onDelete, onDuplicateToDate }: WorkoutSectionProps) {
   const [localLogs, setLocalLogs] = useState<Record<string, WorkoutLog>>({})
   // Per-group toggles (keyed by group anchor template id)
   const [resultOpen, setResultOpen] = useState<Record<string, boolean>>({})
@@ -1118,20 +1118,20 @@ function WorkoutSectionInner({ section, templates, logs, date, onLogUpdate, disp
               >
                 내용 복사
               </button>
-              {onDuplicateToToday && (
+              {onDuplicateToDate && (
                 <button
                   onClick={async () => {
                     setCopyMenuOpen(false)
                     try {
-                      await onDuplicateToToday(templates)
-                      showToast('오늘 운동에 추가됨')
+                      await onDuplicateToDate(templates)
+                      showToast('이 날짜에 추가됨')
                     } catch {
                       showToast('복제 실패')
                     }
                   }}
                   className="w-full py-2.5 rounded-lg bg-accent text-white font-medium"
                 >
-                  오늘 운동에 복제
+                  이 날짜에 복제
                 </button>
               )}
             </div>
@@ -1167,7 +1167,7 @@ const WorkoutSection = memo(WorkoutSectionInner, (prev, next) => {
     prev.displayName === next.displayName &&
     prev.date === next.date &&
     !!prev.onDelete === !!next.onDelete &&
-    !!prev.onDuplicateToToday === !!next.onDuplicateToToday &&
+    !!prev.onDuplicateToDate === !!next.onDuplicateToDate &&
     prev.templates.length === next.templates.length &&
     prev.templates.every((t, i) => t.id === next.templates[i].id) &&
     logsEqual(prev.logs, next.logs)

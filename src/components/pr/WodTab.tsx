@@ -14,10 +14,6 @@ import WodRecordModal from './WodRecordModal'
 import WodHistoryModal from './WodHistoryModal'
 import OpenWodAddModal from './OpenWodAddModal'
 
-interface WodTabProps {
-  userId: string
-}
-
 interface SelectedWod {
   name: string
   description?: string
@@ -75,7 +71,7 @@ function formatBestScore(records: WodRecord[]): string {
   }
 }
 
-export default function WodTab({ userId }: WodTabProps) {
+export default function WodTab() {
   const [allRecords, setAllRecords] = useState<WodRecord[]>([])
   const [historyRecords, setHistoryRecords] = useState<WodRecord[]>([])
   const [selectedWod, setSelectedWod] = useState<SelectedWod | null>(null)
@@ -92,12 +88,12 @@ export default function WodTab({ userId }: WodTabProps) {
 
   const loadAllRecords = useCallback(async () => {
     try {
-      const records = await getAllWodRecords(userId)
+      const records = await getAllWodRecords()
       setAllRecords(records)
     } catch (err) {
       console.error('Failed to load WOD records:', err)
     }
-  }, [userId])
+  }, [])
 
   useEffect(() => {
     loadAllRecords()
@@ -138,7 +134,7 @@ export default function WodTab({ userId }: WodTabProps) {
   async function handleTapWod(wod: SelectedWod) {
     setSelectedWod(wod)
     try {
-      const records = await getWodRecords(userId, wod.name)
+      const records = await getWodRecords(wod.name)
       setHistoryRecords(records)
       setHistoryOpen(true)
     } catch (err) {
@@ -156,7 +152,7 @@ export default function WodTab({ userId }: WodTabProps) {
       await deleteWodRecord(id)
       await loadAllRecords()
       if (selectedWod) {
-        const records = await getWodRecords(userId, selectedWod.name)
+        const records = await getWodRecords(selectedWod.name)
         setHistoryRecords(records)
       }
     } catch (err) {
@@ -175,7 +171,7 @@ export default function WodTab({ userId }: WodTabProps) {
   }) {
     if (!selectedWod) return
     try {
-      await createWodRecord(userId, {
+      await createWodRecord({
         wod_type: selectedWod.wodType,
         wod_name: selectedWod.name,
         ...data,
@@ -183,7 +179,7 @@ export default function WodTab({ userId }: WodTabProps) {
       setRecordModalOpen(false)
       await loadAllRecords()
       // Reopen history
-      const records = await getWodRecords(userId, selectedWod.name)
+      const records = await getWodRecords(selectedWod.name)
       setHistoryRecords(records)
       setHistoryOpen(true)
     } catch (err) {

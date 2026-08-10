@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Trophy } from 'lucide-react'
 import WorkoutSection from '@/components/workout/WorkoutSection'
 import CustomWorkoutForm from '@/components/workout/CustomWorkoutForm'
 import Calculator from '@/components/workout/Calculator'
-import { getTemplatesByDate, getTemplateDatesByRange, getExtraTemplatesByDate, duplicateSectionToToday, deleteExtraGroup, type WorkoutTemplate } from '@/lib/api/workout-templates'
+import { getTemplatesByDate, getTemplateDatesByRange, getExtraTemplatesByDate, duplicateSectionToDate, deleteExtraGroup, type WorkoutTemplate } from '@/lib/api/workout-templates'
 import { getLogsByDate, type WorkoutLog } from '@/lib/api/workout-logs'
 import { getCompetitionByDate, type Competition } from '@/lib/api/competitions'
 import { getToday, getWeekDays, WEEK_DAY_LABELS } from '@/lib/date-utils'
@@ -66,7 +66,7 @@ function WorkoutContent() {
         getTemplatesByDate(date),
         getExtraTemplatesByDate(date),
         getLogsByDate(date),
-        getCompetitionByDate(userId, date),
+        getCompetitionByDate(date),
       ])
       const templateLogs = lgs.filter(l => !l.is_custom)
       const custom = lgs.filter(l => l.is_custom)
@@ -90,7 +90,7 @@ function WorkoutContent() {
     } finally {
       setLoading(false)
     }
-  }, [date, userId, user])
+  }, [date, user])
 
   useEffect(() => {
     loadData()
@@ -135,19 +135,14 @@ function WorkoutContent() {
     setCustomLogs(prev => [...prev, log])
   }
 
-  const handleDuplicateToToday = useCallback(async (tpls: WorkoutTemplate[]) => {
-    const created = await duplicateSectionToToday(tpls)
-    const today = getToday()
-    if (date === today) {
-      setExtras(prev => {
-        const next = [...prev, ...created]
-        const cached = dateCache.get(date)
-        if (cached) dateCache.set(date, { ...cached, extras: next })
-        return next
-      })
-    } else {
-      dateCache.delete(today)
-    }
+  const handleDuplicateToDate = useCallback(async (tpls: WorkoutTemplate[]) => {
+    const created = await duplicateSectionToDate(date, tpls)
+    setExtras(prev => {
+      const next = [...prev, ...created]
+      const cached = dateCache.get(date)
+      if (cached) dateCache.set(date, { ...cached, extras: next })
+      return next
+    })
   }, [date])
 
   const handleExtraDelete = useCallback(async (groupId: string) => {
@@ -350,7 +345,7 @@ function WorkoutContent() {
               logs={sectionLogs.get(section) ?? emptyLogs}
               date={date}
               onLogUpdate={handleLogUpdate}
-              onDuplicateToToday={handleDuplicateToToday}
+              onDuplicateToDate={handleDuplicateToDate}
             />
           )
         })
@@ -368,7 +363,7 @@ function WorkoutContent() {
           logs={extraLogs.get(g.extraGroupId) ?? emptyLogs}
           date={date}
           onLogUpdate={handleLogUpdate}
-          onDuplicateToToday={handleDuplicateToToday}
+          onDuplicateToDate={handleDuplicateToDate}
           onDelete={() => handleExtraDelete(g.extraGroupId)}
         />
       ))}

@@ -22,7 +22,6 @@ import { getDaySummary, upsertDaySummary, type DaySummary, type DaySummaryBlock 
 export default function HomePage() {
   const router = useRouter()
   const { user } = useSession()
-  const userId = user?.id || ''
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
@@ -51,7 +50,7 @@ export default function HomePage() {
     const calendarPromise = Promise.all([
       getTemplateDatesByMonth(year, month),
       getLogDatesByMonth(year, month),
-      getCompetitionsByMonth(userId, year, month),
+      getCompetitionsByMonth(year, month),
     ]).then(([tDates, lDates, comps]) => {
       setTemplateDates(new Set(tDates))
       setLogDates(new Set(lDates))
@@ -77,7 +76,7 @@ export default function HomePage() {
     })
 
     await Promise.all([calendarPromise, todayPromise])
-  }, [year, month, userId, todayStr, user])
+  }, [year, month, todayStr, user])
 
   useEffect(() => {
     loadData()
@@ -106,7 +105,7 @@ export default function HomePage() {
       if (editComp) {
         await updateCompetition(editComp.id, data)
       } else {
-        await createCompetition(userId, data)
+        await createCompetition(data)
       }
       setModalOpen(false)
       setEditComp(null)
