@@ -1,12 +1,6 @@
 import { db } from '@/lib/server/db'
 import { requireUser, toResponse, HttpError } from '@/lib/server/auth'
-
-/** 형식뿐 아니라 실존하는 달력 날짜인지까지 확인한다 (예: 2026-02-30 거부). */
-function isValidDate(s: string): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false
-  const d = new Date(`${s}T00:00:00Z`)
-  return !isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s
-}
+import { isValidDate } from '@/lib/server/date'
 
 async function assertOwnCompetition(id: string, userId: string) {
   const { data, error } = await db
@@ -66,6 +60,9 @@ export async function POST(req: Request) {
     const session = await requireUser()
     const body = await req.json()
     const { id, user_id, created_at, ...comp } = body
+    if (typeof comp.date !== 'string' || !isValidDate(comp.date)) {
+      return Response.json({ error: 'bad request' }, { status: 400 })
+    }
     const { data, error } = await db
       .from('competitions')
       .insert({ ...comp, user_id: session.user_id })
@@ -87,6 +84,9 @@ export async function PATCH(req: Request) {
 
     const body = await req.json()
     const { id: _i, user_id, created_at, ...updates } = body
+    if (updates.date !== undefined && (typeof updates.date !== 'string' || !isValidDate(updates.date))) {
+      return Response.json({ error: 'bad request' }, { status: 400 })
+    }
     const { data, error } = await db
       .from('competitions')
       .update(updates)

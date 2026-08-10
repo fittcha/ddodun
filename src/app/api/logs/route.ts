@@ -1,11 +1,12 @@
 import { db } from '@/lib/server/db'
 import { requireUser, toResponse, HttpError } from '@/lib/server/auth'
+import { isValidDate } from '@/lib/server/date'
 
 export async function POST(req: Request) {
   try {
     const session = await requireUser()
     const body = await req.json()
-    if (typeof body?.date !== 'string') {
+    if (typeof body?.date !== 'string' || !isValidDate(body.date)) {
       return Response.json({ error: 'bad request' }, { status: 400 })
     }
 
