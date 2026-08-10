@@ -338,31 +338,32 @@ git commit -m "feat(auth): scrypt PIN 해싱 및 평문 자동 업그레이드 �
 ## Task 3: 서버 DB 클라이언트 + 권한 게이트
 
 **Files:**
-- Create: `src/lib/server/db.ts`, `src/lib/server/auth.ts`
-- Test: `src/lib/server/auth.test.ts`
+- Create: `src/lib/server/db.ts`, `src/lib/server/http.ts`, `src/lib/server/auth.ts`
+- Test: `src/lib/server/http.test.ts`
 
 **Interfaces:**
 - Consumes: `SessionPayload`, `verifySession` (Task 1)
 - Produces:
-  - `db` — service role Supabase 클라이언트 (`ddodun` 스키마)
-  - `SESSION_COOKIE = 'ddodun_session'`
-  - `class HttpError extends Error { status: number }`
-  - `getSession(): Promise<SessionPayload | null>`
+  - `db` — service role Supabase 클라이언트 (`ddodun` 스키마), `src/lib/server/db.ts`
+  - `class HttpError extends Error { status: number }` — `src/lib/server/http.ts`
+  - `assertOwn(session: SessionPayload, userId: string): void` — 본인 아니면 `HttpError(403)`, `src/lib/server/http.ts`
+  - `toResponse(err: unknown): Response` — `src/lib/server/http.ts`
+  - `SESSION_COOKIE = 'ddodun_session'` — `src/lib/server/auth.ts`
+  - `getSession(): Promise<SessionPayload | null>` — `src/lib/server/auth.ts`
   - `requireUser(): Promise<SessionPayload>` — 없으면 `HttpError(401)`
   - `requireCoach(): Promise<SessionPayload>` — 코치 아니면 `HttpError(403)`
-  - `assertOwn(session: SessionPayload, userId: string): void` — 본인 아니면 `HttpError(403)`
-  - `toResponse(err: unknown): Response`
+  - `auth.ts`는 `HttpError`·`assertOwn`·`toResponse`를 re-export 한다. 이후 태스크의 라우트는 전부 `@/lib/server/auth`에서 import 하면 된다.
 
-`getSession`/`requireUser`/`requireCoach`는 `next/headers`의 `cookies()`에 의존하므로 단위 테스트하지 않는다. 태스크 4에서 curl로 검증한다. `assertOwn`·`toResponse`·`HttpError`는 순수하므로 테스트한다.
+**순수 로직을 `http.ts`로 분리하는 이유:** `auth.ts`는 `next/headers`의 `cookies()`를 import 하는데, 이 모듈은 Next.js 런타임 밖(`node --test`)에서 로드되지 않는다. `HttpError`·`assertOwn`·`toResponse`는 Next에 의존하지 않으므로 `http.ts`에 두고 거기서 테스트한다. `getSession`/`requireUser`/`requireCoach`는 단위 테스트하지 않고 태스크 4에서 curl로 검증한다.
 
 - [ ] **Step 1: 실패하는 테스트 작성**
 
-`src/lib/server/auth.test.ts`:
+`src/lib/server/http.test.ts`:
 
 ```ts
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { HttpError, assertOwn, toResponse } from './auth.ts'
+import { HttpError, assertOwn, toResponse } from './http.ts'
 import type { SessionPayload } from './session.ts'
 
 const session: SessionPayload = {
@@ -399,7 +400,7 @@ test('알 수 없는 예외는 500으로 변환되고 내부 메시지를 노출
 - [ ] **Step 2: 테스트가 실패하는지 확인**
 
 Run: `npm test`
-Expected: FAIL — `Cannot find module './auth.ts'`
+Expected: FAIL — `Cannot find module './http.ts'`
 
 - [ ] **Step 3: `src/lib/server/db.ts` 구현**
 
@@ -420,13 +421,10 @@ export const db = createClient(url, serviceKey, {
 })
 ```
 
-- [ ] **Step 4: `src/lib/server/auth.ts` 구현**
+- [ ] **Step 4: `src/lib/server/http.ts` 구현**
 
 ```ts
-import { cookies } from 'next/headers'
-import { verifySession, type SessionPayload } from './session'
-
-export const SESSION_COOKIE = 'ddodun_session'
+import type { SessionPayload } from './session'
 
 export class HttpError extends Error {
   constructor(
@@ -437,6 +435,30 @@ export class HttpError extends Error {
     this.name = 'HttpError'
   }
 }
+
+export function assertOwn(session: SessionPayload, userId: string): void {
+  if (session.user_id !== userId) throw new HttpError(403, 'forbidden')
+}
+
+export function toResponse(err: unknown): Response {
+  if (err instanceof HttpError) {
+    return Response.json({ error: err.message }, { status: err.status })
+  }
+  console.error(err)
+  return Response.json({ error: 'internal error' }, { status: 500 })
+}
+```
+
+- [ ] **Step 5: `src/lib/server/auth.ts` 구현**
+
+```ts
+import { cookies } from 'next/headers'
+import { verifySession, type SessionPayload } from './session'
+import { HttpError } from './http'
+
+export { HttpError, assertOwn, toResponse } from './http'
+
+export const SESSION_COOKIE = 'ddodun_session'
 
 function secret(): string {
   const s = process.env.SESSION_SECRET
@@ -462,36 +484,22 @@ export async function requireCoach(): Promise<SessionPayload> {
   if (s.role !== 'coach') throw new HttpError(403, 'forbidden')
   return s
 }
-
-export function assertOwn(session: SessionPayload, userId: string): void {
-  if (session.user_id !== userId) throw new HttpError(403, 'forbidden')
-}
-
-export function toResponse(err: unknown): Response {
-  if (err instanceof HttpError) {
-    return Response.json({ error: err.message }, { status: err.status })
-  }
-  console.error(err)
-  return Response.json({ error: 'internal error' }, { status: 500 })
-}
 ```
 
-- [ ] **Step 5: 테스트 통과 확인**
+- [ ] **Step 6: 테스트 통과 확인**
 
 Run: `npm test`
 Expected: PASS — 16 tests
 
-`auth.test.ts`가 `next/headers`를 import 하는 `auth.ts`를 불러온다. Next 16의 `next/headers`는 모듈 최상위에서 부작용이 없으므로 로드된다. 만약 여기서 실패하면 `HttpError`·`assertOwn`·`toResponse`를 `src/lib/server/http.ts`로 분리하고 `auth.ts`가 re-export 하도록 바꾼 뒤, 테스트는 `http.ts`를 import 한다.
-
-- [ ] **Step 6: 타입 체크**
+- [ ] **Step 7: 타입 체크**
 
 Run: `npx tsc --noEmit`
 Expected: 에러 없음
 
-- [ ] **Step 7: 커밋**
+- [ ] **Step 8: 커밋**
 
 ```bash
-git add src/lib/server/db.ts src/lib/server/auth.ts src/lib/server/auth.test.ts
+git add src/lib/server/db.ts src/lib/server/http.ts src/lib/server/auth.ts src/lib/server/http.test.ts
 git commit -m "feat(auth): 서버 전용 Supabase 클라이언트 및 권한 게이트 추가"
 ```
 
@@ -511,7 +519,33 @@ git commit -m "feat(auth): 서버 전용 Supabase 클라이언트 및 권한 게
   - `POST /api/auth/logout` → `200`, 쿠키 만료
   - `GET /api/auth/session` → `200 { user: { id, username, role } }` 또는 `401`
 
-- [ ] **Step 1: `SESSION_SECRET` 생성 및 등록**
+- [ ] **Step 1: `users.role` 컬럼 선행 추가 (사용자 수동)**
+
+로그인 라우트가 `users.role`을 select 한다. 이 컬럼은 태스크 6의 마이그레이션에서 만들어지지만, 그때까지 기다리면 태스크 4의 검증이 PostgREST 에러(`column users.role does not exist`)로 실패한다. 컬럼만 먼저 추가한다.
+
+실행자는 사람에게 요청한다. 자동 실행하지 않는다.
+
+> Supabase SQL Editor에서 아래를 실행해 주세요.
+>
+> ```sql
+> ALTER TABLE ddodun.users ADD COLUMN IF NOT EXISTS role text NOT NULL DEFAULT 'athlete';
+> ALTER TABLE ddodun.users DROP CONSTRAINT IF EXISTS users_role_check;
+> ALTER TABLE ddodun.users ADD CONSTRAINT users_role_check CHECK (role IN ('athlete', 'coach'));
+> ```
+
+태스크 6의 마이그레이션 SQL 1번 블록도 같은 문장을 `IF NOT EXISTS` / `DROP ... IF EXISTS`로 갖고 있으므로, 여기서 먼저 실행해도 그쪽이 중복 실패하지 않는다.
+
+확인:
+
+```bash
+set -a && . ./.env.local && set +a
+curl -s "${NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?select=username,role" \
+  -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+  -H "Accept-Profile: ddodun"
+```
+Expected: 두 계정 모두 `"role":"athlete"`
+
+- [ ] **Step 2: `SESSION_SECRET` 생성 및 등록**
 
 Run:
 ```bash
@@ -522,7 +556,7 @@ Expected: `SESSION_SECRET=<64자리 hex>` 가 출력되고 `.env.local` 마지�
 
 `.env.local`은 git에 커밋되지 않는다. 배포 환경(Vercel)에도 같은 이름으로 등록해야 한다 — 이 계획 범위 밖이며 배포 시 수동으로 한다.
 
-- [ ] **Step 2: `src/app/api/auth/login/route.ts` 구현**
+- [ ] **Step 3: `src/app/api/auth/login/route.ts` 구현**
 
 ```ts
 import { db } from '@/lib/server/db'
@@ -603,7 +637,7 @@ export async function POST(req: Request) {
 
 `autoLogin`이 `false`면 `Max-Age`를 붙이지 않아 브라우저 세션 쿠키가 된다(창을 닫으면 사라짐). 토큰 자체의 `exp`는 1일이다.
 
-- [ ] **Step 3: `src/app/api/auth/logout/route.ts` 구현**
+- [ ] **Step 4: `src/app/api/auth/logout/route.ts` 구현**
 
 ```ts
 import { SESSION_COOKIE } from '@/lib/server/auth'
@@ -620,7 +654,7 @@ export async function POST() {
 }
 ```
 
-- [ ] **Step 4: `src/app/api/auth/session/route.ts` 구현**
+- [ ] **Step 5: `src/app/api/auth/session/route.ts` 구현**
 
 ```ts
 import { getSession, toResponse } from '@/lib/server/auth'
@@ -638,7 +672,7 @@ export async function GET() {
 }
 ```
 
-- [ ] **Step 5: 개발 서버를 띄우고 로그인 왕복을 검증**
+- [ ] **Step 6: 개발 서버를 띄우고 로그인 왕복을 검증**
 
 Run:
 ```bash
@@ -668,9 +702,9 @@ Expected:
 - 올바른 PIN → `{"user":{"id":"eea07b65-...","username":"jindun","role":"athlete"}}`
 - 세션 조회 → 같은 user 객체
 
-`REAL_PIN`은 실행자가 실제 PIN으로 바꾼다. `role` 필드는 아직 컬럼이 없으므로 이 단계에서는 `undefined`로 나온다 — **태스크 6에서 컬럼을 추가한 뒤 이 검증을 다시 수행한다.** 지금은 200과 쿠키 발급만 확인하면 된다.
+`REAL_PIN`은 실행자가 실제 PIN으로 바꾼다. Step 1에서 `role` 컬럼을 추가했으므로 `"role":"athlete"`가 함께 나와야 한다.
 
-- [ ] **Step 6: 평문 PIN이 해시로 업그레이드되었는지 확인**
+- [ ] **Step 7: 평문 PIN이 해시로 업그레이드되었는지 확인**
 
 Run:
 ```bash
@@ -681,7 +715,7 @@ curl -s "${NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?select=username,pin_hash" \
 ```
 Expected: `jindun`의 `pin_hash`가 `scrypt$...`로 시작한다. 아직 로그인하지 않은 `chacha`는 평문 그대로다.
 
-- [ ] **Step 7: 개발 서버 종료 및 커밋**
+- [ ] **Step 8: 개발 서버 종료 및 커밋**
 
 ```bash
 kill %1
