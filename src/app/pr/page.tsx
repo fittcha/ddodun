@@ -11,7 +11,7 @@ import { getExerciseIcon, getEquipmentIcon } from '@/components/pr/ExerciseIcons
 import NrmAddModal from '@/components/pr/NrmAddModal'
 import PaceAddModal from '@/components/pr/PaceAddModal'
 import WodTab from '@/components/pr/WodTab'
-import { getLoggedInUser } from '@/lib/auth'
+import { useSession } from '@/hooks/useSession'
 
 const DEFAULT_1RM = [
   { name: 'Back Squat', label: '백스쿼트' },
@@ -68,10 +68,11 @@ export default function PRPage() {
   const [nrmModalOpen, setNrmModalOpen] = useState(false)
   const [paceModalOpen, setPaceModalOpen] = useState(false)
   const debounceTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
-  const userId = getLoggedInUser()?.id || ''
+  const { user } = useSession()
+  const userId = user?.id || ''
 
   const loadData = useCallback(async () => {
-    if (!userId) return
+    if (!user) return
     try {
       const [rm, nrm, pace] = await Promise.all([
         getAll1RM(userId),
@@ -84,7 +85,7 @@ export default function PRPage() {
     } catch (err) {
       console.error('Failed to load PR data:', err)
     }
-  }, [userId])
+  }, [userId, user])
 
   useEffect(() => { loadData() }, [loadData])
 

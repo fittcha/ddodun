@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { logout, getLoggedInUser, type AuthUser } from '@/lib/auth'
+import { logout } from '@/lib/auth'
+import { useSession } from '@/hooks/useSession'
 import { ChevronLeft } from 'lucide-react'
 
 const themes = [
@@ -13,12 +14,11 @@ const themes = [
 
 export default function SettingsPage() {
   const router = useRouter()
+  const { user } = useSession()
   const [theme, setTheme] = useState('classic')
   const [weightUnit, setWeightUnit] = useState<'lb' | 'kg'>('lb')
-  const [user, setUser] = useState<AuthUser | null>(null)
 
   useEffect(() => {
-    setUser(getLoggedInUser())
     const saved = localStorage.getItem('ddodun-theme') || 'classic'
     setTheme(saved)
     const unit = localStorage.getItem('ddodun-weight-unit') as 'lb' | 'kg' || 'lb'
@@ -36,9 +36,9 @@ export default function SettingsPage() {
     localStorage.setItem('ddodun-weight-unit', unit)
   }
 
-  function handleLogout() {
+  async function handleLogout() {
     if (!confirm('로그아웃 하시겠습니까?')) return
-    logout()
+    await logout()
     router.replace('/login')
   }
 

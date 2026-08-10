@@ -10,7 +10,7 @@ import { getTemplatesByDate, getTemplateDatesByRange, getExtraTemplatesByDate, d
 import { getLogsByDate, type WorkoutLog } from '@/lib/api/workout-logs'
 import { getCompetitionByDate, type Competition } from '@/lib/api/competitions'
 import { getToday, getWeekDays, WEEK_DAY_LABELS } from '@/lib/date-utils'
-import { getLoggedInUser } from '@/lib/auth'
+import { useSession } from '@/hooks/useSession'
 
 const emptyLogs: WorkoutLog[] = []
 
@@ -36,7 +36,8 @@ function WorkoutContent() {
   const [weekTemplateDates, setWeekTemplateDates] = useState<Set<string>>(new Set())
   const [calcOpen, setCalcOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const userId = getLoggedInUser()?.id || ''
+  const { user } = useSession()
+  const userId = user?.id || ''
 
   const weekDays = getWeekDays(date)
 
@@ -49,6 +50,7 @@ function WorkoutContent() {
   }, [weekDays[0]]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = useCallback(async () => {
+    if (!user) return
     const cached = dateCache.get(date)
     if (cached) {
       setTemplates(cached.templates)
@@ -88,7 +90,7 @@ function WorkoutContent() {
     } finally {
       setLoading(false)
     }
-  }, [date])
+  }, [date, userId, user])
 
   useEffect(() => {
     loadData()

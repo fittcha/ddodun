@@ -15,13 +15,14 @@ import {
   type Competition,
 } from '@/lib/api/competitions'
 import { getToday, getWeekdaysInMonth, getDday } from '@/lib/date-utils'
-import { getLoggedInUser } from '@/lib/auth'
+import { useSession } from '@/hooks/useSession'
 import TodaySummary from '@/components/home/TodaySummary'
 import { getDaySummary, upsertDaySummary, type DaySummary, type DaySummaryBlock } from '@/lib/api/day-summaries'
 
 export default function HomePage() {
   const router = useRouter()
-  const userId = getLoggedInUser()?.id || ''
+  const { user } = useSession()
+  const userId = user?.id || ''
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
@@ -44,7 +45,7 @@ export default function HomePage() {
   }, [userId, todayStr])
 
   const loadData = useCallback(async () => {
-    if (!userId) return
+    if (!user) return
 
     // Fetch calendar data and today's summary independently
     const calendarPromise = Promise.all([
@@ -76,7 +77,7 @@ export default function HomePage() {
     })
 
     await Promise.all([calendarPromise, todayPromise])
-  }, [year, month, userId, todayStr])
+  }, [year, month, userId, todayStr, user])
 
   useEffect(() => {
     loadData()

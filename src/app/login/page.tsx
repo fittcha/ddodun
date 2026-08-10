@@ -4,10 +4,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
 import PinInput from '@/components/auth/PinInput'
-import { setLoggedInUser, getLastUsername, setLastUsername } from '@/lib/auth'
-import { getUserByUsername, setUserPin, verifyPin, type User } from '@/lib/api/users'
+import { getLastUsername, setLastUsername } from '@/lib/auth'
 
-type Step = 'username' | 'pin-setup' | 'pin-setup-confirm' | 'pin-verify'
+type Step = 'username' | 'pin-verify'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -18,8 +17,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [pinError, setPinError] = useState(false)
   const [pinErrorMessage, setPinErrorMessage] = useState('')
-  const [user, setUser] = useState<User | null>(null)
-  const [setupPin, setSetupPin] = useState('')
 
   useEffect(() => {
     setUsername(getLastUsername())
@@ -29,76 +26,45 @@ export default function LoginPage() {
     setStep('username')
     setPinError(false)
     setPinErrorMessage('')
-    setSetupPin('')
   }
 
   async function handleNext() {
     if (!username.trim()) return
     setUsernameError('')
+    setStep('pin-verify')
+  }
+
+  async function submitPin(pin: string) {
+    setPinError(false)
+    setPinErrorMessage('')
     setLoading(true)
     try {
-      const found = await getUserByUsername(username.trim())
-      if (!found) {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ username: username.trim(), pin, autoLogin }),
+      })
+      if (res.status === 404) {
+        setStep('username')
         setUsernameError('등록되지 않은 사용자입니다')
         return
       }
-      setUser(found)
-      if (found.pin_hash === null) {
-        setStep('pin-setup')
-      } else {
-        setStep('pin-verify')
+      if (res.status === 429) {
+        setPinError(true)
+        setPinErrorMessage('로그인 시도가 너무 많아 계정이 잠겼습니다. 잠시 후 다시 시도해주세요')
+        return
       }
-    } catch {
-      setUsernameError('오류가 발생했습니다')
+      if (!res.ok) {
+        setPinError(true)
+        setPinErrorMessage('PIN이 올바르지 않습니다')
+        return
+      }
+      setLastUsername(username.trim())
+      router.replace('/')
     } finally {
       setLoading(false)
     }
   }
-
-  function completeLogin(u: User) {
-    setLastUsername(u.username)
-    setLoggedInUser({ id: u.id, username: u.username }, autoLogin)
-    router.push('/')
-  }
-
-  const handleSetupPin = useCallback((pin: string) => {
-    setSetupPin(pin)
-    setStep('pin-setup-confirm')
-  }, [])
-
-  const handleConfirmPin = useCallback(async (pin: string) => {
-    if (pin !== setupPin) {
-      setPinError(true)
-      setPinErrorMessage('PIN이 일치하지 않습니다')
-      return
-    }
-    if (!user) return
-    try {
-      await setUserPin(user.id, pin)
-      completeLogin({ ...user, pin_hash: pin })
-    } catch {
-      setPinError(true)
-      setPinErrorMessage('오류가 발생했습니다')
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setupPin, user, autoLogin])
-
-  const handleVerifyPin = useCallback(async (pin: string) => {
-    if (!user) return
-    try {
-      const ok = await verifyPin(user.id, pin)
-      if (ok) {
-        completeLogin(user)
-      } else {
-        setPinError(true)
-        setPinErrorMessage('PIN이 틀렸습니다')
-      }
-    } catch {
-      setPinError(true)
-      setPinErrorMessage('오류가 발생했습니다')
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, autoLogin])
 
   const handlePinErrorReset = useCallback(() => {
     setPinError(false)
@@ -149,20 +115,6 @@ export default function LoginPage() {
     )
   }
 
-  let pinTitle = ''
-  let pinHandler: (pin: string) => void
-
-  if (step === 'pin-setup') {
-    pinTitle = 'PIN을 설정해주세요'
-    pinHandler = handleSetupPin
-  } else if (step === 'pin-setup-confirm') {
-    pinTitle = 'PIN을 한번 더 입력해주세요'
-    pinHandler = handleConfirmPin
-  } else {
-    pinTitle = 'PIN을 입력하세요'
-    pinHandler = handleVerifyPin
-  }
-
   return (
     <div className="flex flex-col items-center justify-center min-h-dvh bg-background px-4 pb-[10vh]">
       <button
@@ -175,8 +127,8 @@ export default function LoginPage() {
       <h1 className="text-3xl font-bold text-accent mb-2">DDODUN</h1>
       <PinInput
         key={step}
-        title={pinTitle}
-        onComplete={pinHandler}
+        title="PIN을 입력하세요"
+        onComplete={submitPin}
         error={pinError}
         errorMessage={pinErrorMessage}
         onErrorReset={handlePinErrorReset}
