@@ -1,3 +1,5 @@
+import { apiFetch } from './http'
+
 // --- 1RM ---
 export interface OneRM {
   id: string
@@ -9,14 +11,14 @@ export interface OneRM {
 }
 
 export async function getAll1RM(): Promise<OneRM[]> {
-  const res = await fetch('/api/pr/onerm')
+  const res = await apiFetch('/api/pr/onerm')
   if (!res.ok) throw new Error(`getAll1RM: ${res.status}`)
   const { records } = await res.json()
   return records
 }
 
 export async function upsert1RM(exerciseName: string, weight: number | null, weightUnit: string): Promise<OneRM> {
-  const res = await fetch('/api/pr/onerm', {
+  const res = await apiFetch('/api/pr/onerm', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ exerciseName, weight, weightUnit }),
@@ -27,7 +29,7 @@ export async function upsert1RM(exerciseName: string, weight: number | null, wei
 }
 
 export async function delete1RM(id: string): Promise<void> {
-  const res = await fetch(`/api/pr/onerm?id=${id}`, { method: 'DELETE' })
+  const res = await apiFetch(`/api/pr/onerm?id=${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error(`delete1RM: ${res.status}`)
 }
 
@@ -43,14 +45,14 @@ export interface NRM {
 }
 
 export async function getAllNRM(): Promise<NRM[]> {
-  const res = await fetch('/api/pr/nrm')
+  const res = await apiFetch('/api/pr/nrm')
   if (!res.ok) throw new Error(`getAllNRM: ${res.status}`)
   const { records } = await res.json()
   return records
 }
 
 export async function upsertNRM(exerciseName: string, repMax: number, weight: number | null, weightUnit: string): Promise<NRM> {
-  const res = await fetch('/api/pr/nrm', {
+  const res = await apiFetch('/api/pr/nrm', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ exerciseName, repMax, weight, weightUnit }),
@@ -61,7 +63,7 @@ export async function upsertNRM(exerciseName: string, repMax: number, weight: nu
 }
 
 export async function deleteNRM(id: string): Promise<void> {
-  const res = await fetch(`/api/pr/nrm?id=${id}`, { method: 'DELETE' })
+  const res = await apiFetch(`/api/pr/nrm?id=${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error(`deleteNRM: ${res.status}`)
 }
 
@@ -76,14 +78,14 @@ export interface PaceRecord {
 }
 
 export async function getAllPaceRecords(): Promise<PaceRecord[]> {
-  const res = await fetch('/api/pr/pace')
+  const res = await apiFetch('/api/pr/pace')
   if (!res.ok) throw new Error(`getAllPaceRecords: ${res.status}`)
   const { records } = await res.json()
   return records
 }
 
 export async function upsertPaceRecord(equipment: string, distance: string, timeSeconds: number | null): Promise<PaceRecord> {
-  const res = await fetch('/api/pr/pace', {
+  const res = await apiFetch('/api/pr/pace', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ equipment, distance, timeSeconds }),
@@ -94,6 +96,6 @@ export async function upsertPaceRecord(equipment: string, distance: string, time
 }
 
 export async function deletePaceRecord(id: string): Promise<void> {
-  const res = await fetch(`/api/pr/pace?id=${id}`, { method: 'DELETE' })
+  const res = await apiFetch(`/api/pr/pace?id=${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error(`deletePaceRecord: ${res.status}`)
 }

@@ -1,3 +1,5 @@
+import { apiFetch } from './http'
+
 export interface WorkoutTemplate {
   id: string
   date: string
@@ -19,7 +21,7 @@ export interface WorkoutTemplate {
 }
 
 async function getJson<T>(url: string): Promise<T> {
-  const res = await fetch(url)
+  const res = await apiFetch(url)
   if (!res.ok) throw new Error(`${url}: ${res.status}`)
   return res.json()
 }
@@ -51,7 +53,7 @@ export async function duplicateSectionToDate(
   templates: WorkoutTemplate[],
 ): Promise<WorkoutTemplate[]> {
   if (templates.length === 0) return []
-  const res = await fetch('/api/workouts/duplicate', {
+  const res = await apiFetch('/api/workouts/duplicate', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ date, templates }),
@@ -62,6 +64,6 @@ export async function duplicateSectionToDate(
 }
 
 export async function deleteExtraGroup(extraGroupId: string): Promise<void> {
-  const res = await fetch(`/api/workouts/extra/${extraGroupId}`, { method: 'DELETE' })
+  const res = await apiFetch(`/api/workouts/extra/${extraGroupId}`, { method: 'DELETE' })
   if (!res.ok) throw new Error(`deleteExtraGroup: ${res.status}`)
 }

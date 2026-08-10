@@ -1,3 +1,5 @@
+import { apiFetch } from './http'
+
 // --- Types ---
 export type ScoreType = 'time' | 'amrap' | 'reps'
 
@@ -46,21 +48,21 @@ export const NAMED_WOD_PRESETS: WodPreset[] = [
 
 // --- CRUD Functions ---
 export async function getAllWodRecords(): Promise<WodRecord[]> {
-  const res = await fetch('/api/wod')
+  const res = await apiFetch('/api/wod')
   if (!res.ok) throw new Error(`getAllWodRecords: ${res.status}`)
   const { records } = await res.json()
   return records
 }
 
 export async function getWodRecords(wodName: string): Promise<WodRecord[]> {
-  const res = await fetch(`/api/wod?name=${encodeURIComponent(wodName)}`)
+  const res = await apiFetch(`/api/wod?name=${encodeURIComponent(wodName)}`)
   if (!res.ok) throw new Error(`getWodRecords: ${res.status}`)
   const { records } = await res.json()
   return records
 }
 
 export async function createWodRecord(record: Omit<WodRecord, 'id' | 'user_id' | 'created_at'>): Promise<WodRecord> {
-  const res = await fetch('/api/wod', {
+  const res = await apiFetch('/api/wod', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(record),
@@ -71,6 +73,6 @@ export async function createWodRecord(record: Omit<WodRecord, 'id' | 'user_id' |
 }
 
 export async function deleteWodRecord(id: string): Promise<void> {
-  const res = await fetch(`/api/wod?id=${id}`, { method: 'DELETE' })
+  const res = await apiFetch(`/api/wod?id=${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error(`deleteWodRecord: ${res.status}`)
 }

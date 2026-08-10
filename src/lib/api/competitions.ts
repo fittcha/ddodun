@@ -1,3 +1,5 @@
+import { apiFetch } from './http'
+
 export interface Competition {
   id: string
   date: string
@@ -10,21 +12,21 @@ export interface Competition {
 }
 
 export async function getCompetitionsByMonth(year: number, month: number): Promise<Competition[]> {
-  const res = await fetch(`/api/competitions?year=${year}&month=${month}`)
+  const res = await apiFetch(`/api/competitions?year=${year}&month=${month}`)
   if (!res.ok) throw new Error(`getCompetitionsByMonth: ${res.status}`)
   const { competitions } = await res.json()
   return competitions
 }
 
 export async function getCompetitionByDate(date: string): Promise<Competition | null> {
-  const res = await fetch(`/api/competitions?date=${date}`)
+  const res = await apiFetch(`/api/competitions?date=${date}`)
   if (!res.ok) throw new Error(`getCompetitionByDate: ${res.status}`)
   const { competition } = await res.json()
   return competition
 }
 
 export async function createCompetition(comp: Omit<Competition, 'id' | 'created_at' | 'user_id'>): Promise<Competition> {
-  const res = await fetch('/api/competitions', {
+  const res = await apiFetch('/api/competitions', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(comp),
@@ -35,7 +37,7 @@ export async function createCompetition(comp: Omit<Competition, 'id' | 'created_
 }
 
 export async function updateCompetition(id: string, comp: Partial<Competition>): Promise<Competition> {
-  const res = await fetch(`/api/competitions?id=${id}`, {
+  const res = await apiFetch(`/api/competitions?id=${id}`, {
     method: 'PATCH',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(comp),
@@ -46,6 +48,6 @@ export async function updateCompetition(id: string, comp: Partial<Competition>):
 }
 
 export async function deleteCompetition(id: string): Promise<void> {
-  const res = await fetch(`/api/competitions?id=${id}`, { method: 'DELETE' })
+  const res = await apiFetch(`/api/competitions?id=${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error(`deleteCompetition: ${res.status}`)
 }
