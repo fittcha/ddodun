@@ -32,7 +32,8 @@
 | `src/lib/server/pin.ts` | PIN 해싱·검증, 평문 업그레이드 판정 (순수 함수) |
 | `src/lib/server/db.ts` | service role Supabase 클라이언트 |
 | `src/lib/server/auth.ts` | 쿠키 → 세션, `requireUser`/`requireCoach`/`assertOwn`, 에러 → Response |
-| `src/lib/server/programs.ts` | 주 범위 계산(순수) + 날짜→배정 프로그램→템플릿 해석(DB) |
+| `src/lib/server/week.ts` | 주 시작일(월요일) 계산. **순수 함수만, import 없음** |
+| `src/lib/server/programs.ts` | 날짜→배정 프로그램→템플릿 해석(DB). `week.ts`를 re-export |
 
 **신규 (라우트)** — `src/app/api/` 아래. 태스크 4·8·9·10에서 순차 생성.
 
@@ -1379,14 +1380,16 @@ git commit -m "feat(db): 마이그레이션 불변식 검증 스크립트 및 �
   - `GET /api/calendar/[year]/[month]` → `{ dates: string[] }`
   - `src/lib/api/workout-templates.ts`의 `getTemplatesByDate(date)` / `getExtraTemplatesByDate(date)` / `getTemplateDatesByMonth(year, month)` / `getTemplateDatesByRange(start, end)` — 시그니처 유지, 본문만 fetch로 교체
 
+**주의 — 순수 함수는 반드시 별도 모듈로 분리한다.** `programs.ts`는 `db.ts`를 import 하고, `db.ts`는 환경변수가 없으면 모듈 로드 시점에 throw 한다. `node --test`는 `.env.local`을 읽지 않으므로 테스트가 `programs.ts`를 import 하면 전체 테스트 실행이 죽는다. 여기에 `--env-file`로 대응하면 **모든 단위 테스트 실행에 프로덕션 service-role 키가 로드되므로 금지한다.** Task 3의 `http.ts`/`auth.ts` 분리와 동일하게, `weekStartOf`는 import가 전혀 없는 `week.ts`에 두고 `programs.ts`가 re-export 한다. 테스트는 `week.test.ts`에서 `./week.ts`만 import 한다.
+
 - [ ] **Step 1: 실패하는 테스트 작성**
 
-`src/lib/server/programs.test.ts`:
+`src/lib/server/week.test.ts`:
 
 ```ts
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { weekStartOf } from './programs.ts'
+import { weekStartOf } from './week.ts'
 
 test('월요일은 자기 자신을 반환한다', () => {
   assert.equal(weekStartOf('2026-08-10'), '2026-08-10')
