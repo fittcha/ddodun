@@ -65,7 +65,7 @@ function WorkoutContent() {
       const [tpls, ext, lgs, comp] = await Promise.all([
         getTemplatesByDate(date),
         getExtraTemplatesByDate(date),
-        getLogsByDate(userId, date),
+        getLogsByDate(date),
         getCompetitionByDate(userId, date),
       ])
       const templateLogs = lgs.filter(l => !l.is_custom)
@@ -345,7 +345,6 @@ function WorkoutContent() {
           return (
             <WorkoutSection
               key={section}
-              userId={userId}
               section={section}
               templates={sectionTemplates}
               logs={sectionLogs.get(section) ?? emptyLogs}
@@ -363,7 +362,6 @@ function WorkoutContent() {
       {extraGroups.map(g => (
         <WorkoutSection
           key={g.extraGroupId}
-          userId={userId}
           section="추가운동"
           displayName="추가운동"
           templates={g.templates}
@@ -399,7 +397,7 @@ function WorkoutContent() {
       )}
 
       {/* Add custom workout */}
-      <CustomWorkoutForm userId={userId} date={date} onAdd={handleCustomAdd} />
+      <CustomWorkoutForm date={date} onAdd={handleCustomAdd} />
 
       {/* Calculator panel */}
       {calcOpen && (

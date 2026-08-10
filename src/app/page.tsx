@@ -40,9 +40,9 @@ export default function HomePage() {
   const todayStr = getToday()
 
   const handleSummarySave = useCallback((text: string, blocks: DaySummaryBlock[]) => {
-    upsertDaySummary(userId, todayStr, text, blocks).catch(err =>
+    upsertDaySummary(todayStr, text, blocks).catch(err =>
       console.error('Failed to save day summary:', err))
-  }, [userId, todayStr])
+  }, [todayStr])
 
   const loadData = useCallback(async () => {
     if (!user) return
@@ -50,7 +50,7 @@ export default function HomePage() {
     // Fetch calendar data and today's summary independently
     const calendarPromise = Promise.all([
       getTemplateDatesByMonth(year, month),
-      getLogDatesByMonth(userId, year, month),
+      getLogDatesByMonth(year, month),
       getCompetitionsByMonth(userId, year, month),
     ]).then(([tDates, lDates, comps]) => {
       setTemplateDates(new Set(tDates))
@@ -64,8 +64,8 @@ export default function HomePage() {
     const todayPromise = Promise.all([
       getTemplatesByDate(todayStr),
       getExtraTemplatesByDate(todayStr),
-      getLogsByDate(userId, todayStr),
-      getDaySummary(userId, todayStr).catch(() => null),
+      getLogsByDate(todayStr),
+      getDaySummary(todayStr).catch(() => null),
     ]).then(([tTemplates, tExtras, tLogs, tSummary]) => {
       setTodayTemplates([...tTemplates, ...tExtras])
       setTodayLogs(tLogs)

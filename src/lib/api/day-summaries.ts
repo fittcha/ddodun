@@ -1,5 +1,3 @@
-import { supabase } from '@/lib/supabase'
-
 export interface DaySummaryBlock {
   key: string          // grouping id: coach → section("A"..), extra → extra_group_id
   header?: string      // display header text ("추가운동" for extras, section letter for coach)
@@ -14,30 +12,24 @@ export interface DaySummary {
   blocks: DaySummaryBlock[]
 }
 
-export async function getDaySummary(userId: string, date: string): Promise<DaySummary | null> {
-  const { data, error } = await supabase
-    .from('workout_day_summaries')
-    .select('text, blocks')
-    .eq('user_id', userId)
-    .eq('date', date)
-    .maybeSingle()
-
-  if (error) throw error
-  if (!data) return null
-  return { text: data.text ?? '', blocks: (data.blocks as DaySummaryBlock[]) ?? [] }
+export async function getDaySummary(date: string): Promise<DaySummary | null> {
+  const res = await fetch(`/api/summaries/${date}`)
+  if (!res.ok) throw new Error(`getDaySummary: ${res.status}`)
+  const { summary } = await res.json()
+  return summary
 }
 
 export async function upsertDaySummary(
-  userId: string,
   date: string,
   text: string,
   blocks: DaySummaryBlock[],
-): Promise<void> {
-  const { error } = await supabase
-    .from('workout_day_summaries')
-    .upsert(
-      { user_id: userId, date, text, blocks, updated_at: new Date().toISOString() },
-      { onConflict: 'user_id,date' },
-    )
-  if (error) throw error
+): Promise<DaySummary> {
+  const res = await fetch(`/api/summaries/${date}`, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ text, blocks }),
+  })
+  if (!res.ok) throw new Error(`upsertDaySummary: ${res.status}`)
+  const { summary } = await res.json()
+  return summary
 }

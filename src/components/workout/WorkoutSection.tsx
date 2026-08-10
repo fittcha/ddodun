@@ -12,7 +12,6 @@ import ExerciseSearchModal from './ExerciseSearchModal'
 type InputMode = 'weight' | ResultType  // 'weight' | 'rounds' | 'reps' | 'time'
 
 interface WorkoutSectionProps {
-  userId: string
   section: string
   templates: WorkoutTemplate[]
   logs: WorkoutLog[]
@@ -213,7 +212,7 @@ function computeGroups(templates: WorkoutTemplate[]): TemplateGroup[] {
   return groups
 }
 
-function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpdate, displayName, onDelete, onDuplicateToToday }: WorkoutSectionProps) {
+function WorkoutSectionInner({ section, templates, logs, date, onLogUpdate, displayName, onDelete, onDuplicateToToday }: WorkoutSectionProps) {
   const [localLogs, setLocalLogs] = useState<Record<string, WorkoutLog>>({})
   // Per-group toggles (keyed by group anchor template id)
   const [resultOpen, setResultOpen] = useState<Record<string, boolean>>({})
@@ -341,7 +340,7 @@ function WorkoutSectionInner({ userId, section, templates, logs, date, onLogUpda
   const saveLog = useCallback(async (templateId: string, sec: string, updates: Partial<WorkoutLog>) => {
     const existing = localLogsRef.current[templateId] || logs.find(l => l.template_id === templateId)
     try {
-      const saved = await upsertLog(userId, {
+      const saved = await upsertLog({
         ...(existing?.id ? { id: existing.id } : {}),
         date,
         template_id: templateId,
@@ -1164,7 +1163,6 @@ function logsEqual(a: WorkoutLog[], b: WorkoutLog[]): boolean {
 
 const WorkoutSection = memo(WorkoutSectionInner, (prev, next) => {
   return (
-    prev.userId === next.userId &&
     prev.section === next.section &&
     prev.displayName === next.displayName &&
     prev.date === next.date &&
