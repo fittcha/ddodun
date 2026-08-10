@@ -427,12 +427,12 @@ export const db = createClient(url, serviceKey, {
 import type { SessionPayload } from './session'
 
 export class HttpError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-  ) {
+  status: number
+
+  constructor(status: number, message: string) {
     super(message)
     this.name = 'HttpError'
+    this.status = status
   }
 }
 
