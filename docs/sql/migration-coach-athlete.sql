@@ -137,4 +137,11 @@ BEGIN
   END IF;
 END $$;
 
+-- 9. 새로 만든 테이블은 스키마 최초 GRANT를 물려받지 않으므로 명시적으로 부여한다.
+GRANT ALL ON ddodun.programs,
+             ddodun.program_versions,
+             ddodun.program_version_templates,
+             ddodun.program_assignments
+  TO service_role;
+
 COMMIT;
