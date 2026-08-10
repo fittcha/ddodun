@@ -5,6 +5,8 @@ import { SESSION_COOKIE, toResponse } from '@/lib/server/auth'
 
 const THIRTY_DAYS = 60 * 60 * 24 * 30
 const ONE_DAY = 60 * 60 * 24
+const MAX_FAILED_ATTEMPTS = 5
+const LOCK_DURATION_MS = 15 * 60 * 1000
 
 export async function POST(req: Request) {
   try {
@@ -16,26 +18,61 @@ export async function POST(req: Request) {
 
     const { data: user, error } = await db
       .from('users')
-      .select('id, username, role, pin_hash')
+      .select('id, username, role, pin_hash, failed_attempts, locked_until')
       .eq('username', username.trim())
       .maybeSingle()
     if (error) throw error
     if (!user) return Response.json({ error: 'user not found' }, { status: 404 })
 
+    const now = Date.now()
+
+    if (user.locked_until !== null) {
+      const lockedUntilMs = new Date(user.locked_until).getTime()
+      if (lockedUntilMs > now) {
+        const retryAfter = Math.ceil((lockedUntilMs - now) / 1000)
+        return Response.json(
+          { error: 'account locked' },
+          { status: 429, headers: { 'Retry-After': String(retryAfter) } },
+        )
+      }
+      // 잠금이 만료되었으면 잠기지 않은 것으로 취급하고 계속 진행한다
+    }
+
     if (user.pin_hash === null) {
-      // 최초 로그인: 전달된 PIN을 설정한다
+      // 최초 로그인: 전달된 PIN을 설정하고 실패 카운터를 초기화한다
       const { error: upErr } = await db
         .from('users')
-        .update({ pin_hash: hashPin(pin) })
+        .update({ pin_hash: hashPin(pin), failed_attempts: 0, locked_until: null })
         .eq('id', user.id)
       if (upErr) throw upErr
     } else {
       const { ok, needsUpgrade } = checkPin(user.pin_hash, pin)
-      if (!ok) return Response.json({ error: 'invalid pin' }, { status: 401 })
-      if (needsUpgrade) {
+      if (!ok) {
+        const attempts = user.failed_attempts + 1
+        const lockedOut = attempts >= MAX_FAILED_ATTEMPTS
         const { error: upErr } = await db
           .from('users')
-          .update({ pin_hash: hashPin(pin) })
+          .update(
+            lockedOut
+              ? { failed_attempts: 0, locked_until: new Date(now + LOCK_DURATION_MS).toISOString() }
+              : { failed_attempts: attempts },
+          )
+          .eq('id', user.id)
+        if (upErr) throw upErr
+        return Response.json({ error: 'invalid pin' }, { status: 401 })
+      }
+
+      // 로그인 성공: 업그레이드가 필요하면 같은 쓰기에 실패 카운터 초기화를 함께 담는다.
+      // 이미 카운터가 초기 상태라면 불필요한 쓰기를 발생시키지 않는다.
+      const needsCounterReset = user.failed_attempts !== 0 || user.locked_until !== null
+      if (needsUpgrade || needsCounterReset) {
+        const { error: upErr } = await db
+          .from('users')
+          .update({
+            ...(needsUpgrade ? { pin_hash: hashPin(pin) } : {}),
+            failed_attempts: 0,
+            locked_until: null,
+          })
           .eq('id', user.id)
         if (upErr) throw upErr
       }
