@@ -11,7 +11,7 @@ import { getExerciseIcon, getEquipmentIcon } from '@/components/pr/ExerciseIcons
 import NrmAddModal from '@/components/pr/NrmAddModal'
 import PaceAddModal from '@/components/pr/PaceAddModal'
 import WodTab from '@/components/pr/WodTab'
-import { getLoggedInUser } from '@/lib/auth'
+import { useSession } from '@/hooks/useSession'
 
 const DEFAULT_1RM = [
   { name: 'Back Squat', label: '백스쿼트' },
@@ -68,15 +68,16 @@ export default function PRPage() {
   const [nrmModalOpen, setNrmModalOpen] = useState(false)
   const [paceModalOpen, setPaceModalOpen] = useState(false)
   const debounceTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
-  const userId = getLoggedInUser()?.id || ''
+  const { user } = useSession()
+  const userId = user?.id || ''
 
   const loadData = useCallback(async () => {
-    if (!userId) return
+    if (!user) return
     try {
       const [rm, nrm, pace] = await Promise.all([
-        getAll1RM(userId),
-        getAllNRM(userId),
-        getAllPaceRecords(userId),
+        getAll1RM(),
+        getAllNRM(),
+        getAllPaceRecords(),
       ])
       setRecords(rm)
       setNrmRecords(nrm)
@@ -84,7 +85,7 @@ export default function PRPage() {
     } catch (err) {
       console.error('Failed to load PR data:', err)
     }
-  }, [userId])
+  }, [user])
 
   useEffect(() => { loadData() }, [loadData])
 
@@ -115,7 +116,7 @@ export default function PRPage() {
     if (existing) clearTimeout(existing)
     debounceTimers.current.set(key, setTimeout(async () => {
       try {
-        await upsert1RM(userId, exerciseName, value ? parseFloat(value) : null, unit)
+        await upsert1RM(exerciseName, value ? parseFloat(value) : null, unit)
       } catch (err) {
         console.error('Failed to save 1RM:', err)
       }
@@ -124,7 +125,7 @@ export default function PRPage() {
 
   async function handleNrmSave(exercise: string, repMax: number, weight: number, unit: string) {
     try {
-      const saved = await upsertNRM(userId, exercise, repMax, weight, unit)
+      const saved = await upsertNRM(exercise, repMax, weight, unit)
       setNrmModalOpen(false)
       setNrmRecords(prev => {
         const idx = prev.findIndex(r => r.id === saved.id)
@@ -146,7 +147,7 @@ export default function PRPage() {
   }
 
   async function handlePaceSave(equipment: string, distance: string, timeSeconds: number) {
-    const saved = await upsertPaceRecord(userId, equipment, distance, timeSeconds)
+    const saved = await upsertPaceRecord(equipment, distance, timeSeconds)
     setPaceModalOpen(false)
     setPaceRecords(prev => {
       const idx = prev.findIndex(r => r.id === saved.id)
@@ -362,7 +363,7 @@ export default function PRPage() {
       </>)}
 
       {subTab === 'wod' && (
-        <WodTab userId={userId} />
+        <WodTab />
       )}
 
       {/* Modals */}

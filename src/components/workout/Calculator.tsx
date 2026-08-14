@@ -25,7 +25,7 @@ export default function Calculator({ userId }: CalculatorProps) {
     async function load() {
       if (!userId) return
       try {
-        const data = await getAll1RM(userId)
+        const data = await getAll1RM()
         const withWeight = data.filter(r => r.weight && r.weight > 0)
         const sorted = [
           ...DEFAULT_EXERCISES.filter(name => withWeight.some(r => r.exercise_name === name))

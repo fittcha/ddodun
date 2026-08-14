@@ -15,13 +15,13 @@ import {
   type Competition,
 } from '@/lib/api/competitions'
 import { getToday, getWeekdaysInMonth, getDday } from '@/lib/date-utils'
-import { getLoggedInUser } from '@/lib/auth'
+import { useSession } from '@/hooks/useSession'
 import TodaySummary from '@/components/home/TodaySummary'
 import { getDaySummary, upsertDaySummary, type DaySummary, type DaySummaryBlock } from '@/lib/api/day-summaries'
 
 export default function HomePage() {
   const router = useRouter()
-  const userId = getLoggedInUser()?.id || ''
+  const { user } = useSession()
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
@@ -39,18 +39,18 @@ export default function HomePage() {
   const todayStr = getToday()
 
   const handleSummarySave = useCallback((text: string, blocks: DaySummaryBlock[]) => {
-    upsertDaySummary(userId, todayStr, text, blocks).catch(err =>
+    upsertDaySummary(todayStr, text, blocks).catch(err =>
       console.error('Failed to save day summary:', err))
-  }, [userId, todayStr])
+  }, [todayStr])
 
   const loadData = useCallback(async () => {
-    if (!userId) return
+    if (!user) return
 
     // Fetch calendar data and today's summary independently
     const calendarPromise = Promise.all([
       getTemplateDatesByMonth(year, month),
-      getLogDatesByMonth(userId, year, month),
-      getCompetitionsByMonth(userId, year, month),
+      getLogDatesByMonth(year, month),
+      getCompetitionsByMonth(year, month),
     ]).then(([tDates, lDates, comps]) => {
       setTemplateDates(new Set(tDates))
       setLogDates(new Set(lDates))
@@ -63,8 +63,8 @@ export default function HomePage() {
     const todayPromise = Promise.all([
       getTemplatesByDate(todayStr),
       getExtraTemplatesByDate(todayStr),
-      getLogsByDate(userId, todayStr),
-      getDaySummary(userId, todayStr).catch(() => null),
+      getLogsByDate(todayStr),
+      getDaySummary(todayStr).catch(() => null),
     ]).then(([tTemplates, tExtras, tLogs, tSummary]) => {
       setTodayTemplates([...tTemplates, ...tExtras])
       setTodayLogs(tLogs)
@@ -76,7 +76,7 @@ export default function HomePage() {
     })
 
     await Promise.all([calendarPromise, todayPromise])
-  }, [year, month, userId, todayStr])
+  }, [year, month, todayStr, user])
 
   useEffect(() => {
     loadData()
@@ -105,7 +105,7 @@ export default function HomePage() {
       if (editComp) {
         await updateCompetition(editComp.id, data)
       } else {
-        await createCompetition(userId, data)
+        await createCompetition(data)
       }
       setModalOpen(false)
       setEditComp(null)

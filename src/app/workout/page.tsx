@@ -6,11 +6,11 @@ import { ChevronLeft, ChevronRight, Trophy } from 'lucide-react'
 import WorkoutSection from '@/components/workout/WorkoutSection'
 import CustomWorkoutForm from '@/components/workout/CustomWorkoutForm'
 import Calculator from '@/components/workout/Calculator'
-import { getTemplatesByDate, getTemplateDatesByRange, getExtraTemplatesByDate, duplicateSectionToToday, deleteExtraGroup, type WorkoutTemplate } from '@/lib/api/workout-templates'
+import { getTemplatesByDate, getTemplateDatesByRange, getExtraTemplatesByDate, duplicateSectionToDate, deleteExtraGroup, type WorkoutTemplate } from '@/lib/api/workout-templates'
 import { getLogsByDate, type WorkoutLog } from '@/lib/api/workout-logs'
 import { getCompetitionByDate, type Competition } from '@/lib/api/competitions'
 import { getToday, getWeekDays, WEEK_DAY_LABELS } from '@/lib/date-utils'
-import { getLoggedInUser } from '@/lib/auth'
+import { useSession } from '@/hooks/useSession'
 
 const emptyLogs: WorkoutLog[] = []
 
@@ -36,7 +36,8 @@ function WorkoutContent() {
   const [weekTemplateDates, setWeekTemplateDates] = useState<Set<string>>(new Set())
   const [calcOpen, setCalcOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const userId = getLoggedInUser()?.id || ''
+  const { user } = useSession()
+  const userId = user?.id || ''
 
   const weekDays = getWeekDays(date)
 
@@ -49,6 +50,7 @@ function WorkoutContent() {
   }, [weekDays[0]]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = useCallback(async () => {
+    if (!user) return
     const cached = dateCache.get(date)
     if (cached) {
       setTemplates(cached.templates)
@@ -63,8 +65,8 @@ function WorkoutContent() {
       const [tpls, ext, lgs, comp] = await Promise.all([
         getTemplatesByDate(date),
         getExtraTemplatesByDate(date),
-        getLogsByDate(userId, date),
-        getCompetitionByDate(userId, date),
+        getLogsByDate(date),
+        getCompetitionByDate(date),
       ])
       const templateLogs = lgs.filter(l => !l.is_custom)
       const custom = lgs.filter(l => l.is_custom)
@@ -88,7 +90,7 @@ function WorkoutContent() {
     } finally {
       setLoading(false)
     }
-  }, [date])
+  }, [date, user])
 
   useEffect(() => {
     loadData()
@@ -133,19 +135,14 @@ function WorkoutContent() {
     setCustomLogs(prev => [...prev, log])
   }
 
-  const handleDuplicateToToday = useCallback(async (tpls: WorkoutTemplate[]) => {
-    const created = await duplicateSectionToToday(tpls)
-    const today = getToday()
-    if (date === today) {
-      setExtras(prev => {
-        const next = [...prev, ...created]
-        const cached = dateCache.get(date)
-        if (cached) dateCache.set(date, { ...cached, extras: next })
-        return next
-      })
-    } else {
-      dateCache.delete(today)
-    }
+  const handleDuplicateToDate = useCallback(async (tpls: WorkoutTemplate[]) => {
+    const created = await duplicateSectionToDate(date, tpls)
+    setExtras(prev => {
+      const next = [...prev, ...created]
+      const cached = dateCache.get(date)
+      if (cached) dateCache.set(date, { ...cached, extras: next })
+      return next
+    })
   }, [date])
 
   const handleExtraDelete = useCallback(async (groupId: string) => {
@@ -343,13 +340,12 @@ function WorkoutContent() {
           return (
             <WorkoutSection
               key={section}
-              userId={userId}
               section={section}
               templates={sectionTemplates}
               logs={sectionLogs.get(section) ?? emptyLogs}
               date={date}
               onLogUpdate={handleLogUpdate}
-              onDuplicateToToday={handleDuplicateToToday}
+              onDuplicateToDate={handleDuplicateToDate}
             />
           )
         })
@@ -361,14 +357,13 @@ function WorkoutContent() {
       {extraGroups.map(g => (
         <WorkoutSection
           key={g.extraGroupId}
-          userId={userId}
           section="추가운동"
           displayName="추가운동"
           templates={g.templates}
           logs={extraLogs.get(g.extraGroupId) ?? emptyLogs}
           date={date}
           onLogUpdate={handleLogUpdate}
-          onDuplicateToToday={handleDuplicateToToday}
+          onDuplicateToDate={handleDuplicateToDate}
           onDelete={() => handleExtraDelete(g.extraGroupId)}
         />
       ))}
@@ -397,7 +392,7 @@ function WorkoutContent() {
       )}
 
       {/* Add custom workout */}
-      <CustomWorkoutForm userId={userId} date={date} onAdd={handleCustomAdd} />
+      <CustomWorkoutForm date={date} onAdd={handleCustomAdd} />
 
       {/* Calculator panel */}
       {calcOpen && (

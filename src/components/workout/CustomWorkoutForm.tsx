@@ -5,12 +5,11 @@ import { Plus, X } from 'lucide-react'
 import { upsertLog, type WorkoutLog } from '@/lib/api/workout-logs'
 
 interface CustomWorkoutFormProps {
-  userId: string
   date: string
   onAdd: (log: WorkoutLog) => void
 }
 
-export default function CustomWorkoutForm({ userId, date, onAdd }: CustomWorkoutFormProps) {
+export default function CustomWorkoutForm({ date, onAdd }: CustomWorkoutFormProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [name, setName] = useState('')
   const [result, setResult] = useState('')
@@ -21,7 +20,7 @@ export default function CustomWorkoutForm({ userId, date, onAdd }: CustomWorkout
     if (!name.trim()) return
     setSaving(true)
     try {
-      const log = await upsertLog(userId, {
+      const log = await upsertLog({
         date,
         is_custom: true,
         exercise_name: name.trim(),

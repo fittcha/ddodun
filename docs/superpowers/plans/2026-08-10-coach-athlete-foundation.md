@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - 원본 스펙: `docs/superpowers/specs/2026-08-10-coach-athlete-platform-design.md`
-- **기존 `workout_templates` 741행의 `id`는 절대 변경·삭제하지 않는다.** 로그 659행과 `workout_day_summaries.blocks[].template_ids`가 이 id를 참조한다.
+- **기존 `workout_templates` 741행의 `id`는 절대 변경·삭제하지 않는다.** 로그(사전 스냅샷 기준)와 `workout_day_summaries.blocks[].template_ids`가 이 id를 참조한다.
 - 새 npm 의존성 금지. 암호화는 `node:crypto`, 테스트는 `node:test`만 사용한다.
 - 테스트 파일은 소스 옆에 `*.test.ts`로 두고 **상대 경로로 import 한다** (`./session.ts`). `@/` 별칭은 `node --test`에서 해석되지 않는다.
 - 서버 전용 모듈은 `src/lib/server/` 아래에만 두고, 클라이언트 컴포넌트에서 import 하지 않는다.
@@ -32,7 +32,8 @@
 | `src/lib/server/pin.ts` | PIN 해싱·검증, 평문 업그레이드 판정 (순수 함수) |
 | `src/lib/server/db.ts` | service role Supabase 클라이언트 |
 | `src/lib/server/auth.ts` | 쿠키 → 세션, `requireUser`/`requireCoach`/`assertOwn`, 에러 → Response |
-| `src/lib/server/programs.ts` | 주 범위 계산(순수) + 날짜→배정 프로그램→템플릿 해석(DB) |
+| `src/lib/server/week.ts` | 주 시작일(월요일) 계산. **순수 함수만, import 없음** |
+| `src/lib/server/programs.ts` | 날짜→배정 프로그램→템플릿 해석(DB). `week.ts`를 re-export |
 
 **신규 (라우트)** — `src/app/api/` 아래. 태스크 4·8·9·10에서 순차 생성.
 
@@ -427,12 +428,12 @@ export const db = createClient(url, serviceKey, {
 import type { SessionPayload } from './session'
 
 export class HttpError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-  ) {
+  status: number
+
+  constructor(status: number, message: string) {
     super(message)
     this.name = 'HttpError'
+    this.status = status
   }
 }
 
@@ -1055,7 +1056,9 @@ if (noOwner.length > 0) {
 
 Run: `node scripts/snapshot-invariants.mjs /tmp/ddodun-before.json`
 
-Expected: 종료코드 0, `templates: 741`, `programTemplates: 735`, `extraTemplates: 6`, `logs: 659`, `danglingLogs: []`, `danglingSummaryRefs: []`
+Expected: 종료코드 0, `danglingLogs: []`, `danglingSummaryRefs: []`
+
+**행 수를 상수로 고정하지 말 것.** DB는 사용자가 앱을 쓰는 동안 계속 변한다(실제로 이 계획 실행 중 로그가 656→659로 늘었다). 검증의 근거는 절대 수치가 아니라 **사전/사후 스냅샷 비교**다. 사전 스냅샷은 마이그레이션 **직전에** 다시 떠야 하며, 그 사이에 앱을 사용하면 안 된다.
 
 종료코드가 2면 **여기서 멈추고** 출력된 행을 사람이 확인한 뒤 마이그레이션 SQL의 5단계를 그에 맞게 조정한다.
 
@@ -1070,8 +1073,13 @@ GRANT ALL ON ddodun.workout_day_summaries TO service_role;
 ```sql
 -- 코치/선수 분리 마이그레이션 (A. 기반 공사)
 -- Supabase SQL Editor에서 1회 실행.
--- 실행 전: scripts/snapshot-invariants.mjs 가 종료코드 0으로 통과해야 한다.
--- 실행 전: 아래 :coach_username 을 실제 코치 계정명으로 치환할 것.
+--
+-- 실행 전 조건 1: scripts/snapshot-invariants.mjs 가 종료코드 0으로 통과해야 한다.
+-- 실행 전 조건 2: 아래 2번 블록의 VALUES ('coach', 'coach') 에서 **첫 번째** 'coach'
+--                (username) 를 원하는 코치 계정명으로 직접 바꿀 것. 두 번째 'coach' 는
+--                role 값이므로 반드시 그대로 둔다.
+--                Supabase SQL Editor 는 psql 의 :변수 치환을 지원하지 않으므로
+--                반드시 문자열을 직접 편집해야 한다.
 
 BEGIN;
 
@@ -1372,14 +1380,16 @@ git commit -m "feat(db): 마이그레이션 불변식 검증 스크립트 및 �
   - `GET /api/calendar/[year]/[month]` → `{ dates: string[] }`
   - `src/lib/api/workout-templates.ts`의 `getTemplatesByDate(date)` / `getExtraTemplatesByDate(date)` / `getTemplateDatesByMonth(year, month)` / `getTemplateDatesByRange(start, end)` — 시그니처 유지, 본문만 fetch로 교체
 
+**주의 — 순수 함수는 반드시 별도 모듈로 분리한다.** `programs.ts`는 `db.ts`를 import 하고, `db.ts`는 환경변수가 없으면 모듈 로드 시점에 throw 한다. `node --test`는 `.env.local`을 읽지 않으므로 테스트가 `programs.ts`를 import 하면 전체 테스트 실행이 죽는다. 여기에 `--env-file`로 대응하면 **모든 단위 테스트 실행에 프로덕션 service-role 키가 로드되므로 금지한다.** Task 3의 `http.ts`/`auth.ts` 분리와 동일하게, `weekStartOf`는 import가 전혀 없는 `week.ts`에 두고 `programs.ts`가 re-export 한다. 테스트는 `week.test.ts`에서 `./week.ts`만 import 한다.
+
 - [ ] **Step 1: 실패하는 테스트 작성**
 
-`src/lib/server/programs.test.ts`:
+`src/lib/server/week.test.ts`:
 
 ```ts
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { weekStartOf } from './programs.ts'
+import { weekStartOf } from './week.ts'
 
 test('월요일은 자기 자신을 반환한다', () => {
   assert.equal(weekStartOf('2026-08-10'), '2026-08-10')

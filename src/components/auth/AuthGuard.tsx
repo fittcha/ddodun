@@ -1,27 +1,22 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { getLoggedInUser } from '@/lib/auth'
+import { useSession } from '@/hooks/useSession'
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
-  const [checked, setChecked] = useState(false)
-  const [authed, setAuthed] = useState(false)
+  const { user, loading } = useSession()
   const pathname = usePathname()
   const router = useRouter()
 
   useEffect(() => {
-    const user = getLoggedInUser()
-    setAuthed(!!user)
-    setChecked(true)
-
-    if (!user && pathname !== '/login') {
+    if (!loading && !user && pathname !== '/login') {
       router.replace('/login')
     }
-  }, [pathname, router])
+  }, [loading, user, pathname, router])
 
-  if (!checked) return null
+  if (loading) return null
   if (pathname === '/login') return <>{children}</>
-  if (!authed) return null
+  if (!user) return null
   return <>{children}</>
 }

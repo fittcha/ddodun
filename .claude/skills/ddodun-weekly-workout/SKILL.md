@@ -8,10 +8,13 @@ description: Use when adding a new week of DDODUN CrossFit workout data from the
 ## Overview
 
 Every week the coach posts one image with 5 columns (MON~FRI). This skill turns that
-image into validated rows in `ddodun.workout_templates`. **Core principle: the coach
-image is the source of truth, the `weekN-templates.sql` file is the auditable artifact,
-and every row is machine-validated against the real `parseDescription` renderer before
-it touches the DB.** Never eyeball-and-insert — generate SQL, run `validate.mjs`, then insert.
+image into validated rows in `ddodun.workout_templates`, plus the `programs` /
+`program_versions` / `program_version_templates` / `program_assignments` rows that make
+those templates visible to athletes (`insert.mjs` does both — see "Program layer" below).
+**Core principle: the coach image is the source of truth, the `weekN-templates.sql` file
+is the auditable artifact, and every row is machine-validated against the real
+`parseDescription` renderer before it touches the DB.** Never eyeball-and-insert —
+generate SQL, run `validate.mjs`, then insert.
 
 ## When to use
 
@@ -40,8 +43,31 @@ is this week (e.g. 6월 1주차 = week14 → 6월 2주차 = week15). Dates come 
 3. **Check for duplicates**: query existing rows for the target dates (the inserter does this too, but check early).
 4. **Transcribe each day section-by-section into a new `weekN-templates.sql`**, one `INSERT … VALUES` block per day, applying the [classification rules](#classification-cheat-sheet) and [pitfalls](#critical-pitfalls) below.
 5. **Validate**: `node .claude/skills/ddodun-weekly-workout/scripts/validate.mjs app/docs/sql/weekN-templates.sql`. It prints the exact group/line classification — **read every section against that day's crop** (from step 1) and confirm `problems: 0`. Fix and re-run until clean.
-6. **Insert**: `node .claude/skills/ddodun-weekly-workout/scripts/insert.mjs app/docs/sql/weekN-templates.sql`. It parses the SQL (single source of truth), POSTs JSON to Supabase, and re-queries to confirm the row count.
-7. **Report**: per-day row counts, any section-letter reassignments or typo fixes, and the verified DB count. Commit the SQL file to the app repo if the user wants.
+6. **Insert**: `node .claude/skills/ddodun-weekly-workout/scripts/insert.mjs app/docs/sql/weekN-templates.sql`. It parses the SQL (single source of truth), POSTs JSON to Supabase, re-queries to confirm the row count, **and then builds the program layer** (see below) so the rows are actually visible to athletes — this is not a separate manual step.
+7. **Report**: per-day row counts, any section-letter reassignments or typo fixes, the verified DB count, and the program(s) created/reused. Commit the SQL file to the app repo if the user wants.
+
+## Program layer (why a bare template insert is not enough)
+
+Athletes never read `workout_templates` directly. `src/lib/server/programs.ts` `resolveTemplates`
+only returns a template if it is linked, via `program_version_templates`, to a `program_versions`
+row that is assigned (`program_assignments`) to that athlete. `insert.mjs` therefore also creates,
+for every Monday its batch covers:
+
+1. a `programs` row (`coach_id` = the sole `role='coach'` user, `week_start_date` = that Monday,
+   `title = '<week_start_date> 주간'`),
+2. a `program_versions` row (`version_no` 1, `status` `'published'`),
+3. `program_version_templates` links for every inserted row with `extra_group_id IS NULL`,
+4. `program_assignments` for every `role='athlete'` user.
+
+**Idempotency**: before writing anything, the script checks whether a `programs` row already
+exists for a covered week. Without `--force` it aborts the entire run (no templates inserted
+either) rather than risk a second program for the same week. With `--force` it reuses the
+existing program/version — linking the newly inserted templates and topping up any missing
+athlete assignments — instead of creating a duplicate. It never creates two programs for one week.
+
+If you ever need to insert templates *without* going through `insert.mjs` (you shouldn't), you
+must still create this layer by hand, or the rows will silently never appear for any athlete —
+no error, just an empty calendar day.
 
 ## Classification cheat-sheet
 

@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { apiFetch } from './http'
 
 // --- Types ---
 export type ScoreType = 'time' | 'amrap' | 'reps'
@@ -47,38 +47,32 @@ export const NAMED_WOD_PRESETS: WodPreset[] = [
 ]
 
 // --- CRUD Functions ---
-export async function getAllWodRecords(userId: string): Promise<WodRecord[]> {
-  const { data, error } = await supabase
-    .from('wod_records')
-    .select('*')
-    .eq('user_id', userId)
-    .order('recorded_at', { ascending: false })
-  if (error) throw error
-  return data || []
+export async function getAllWodRecords(): Promise<WodRecord[]> {
+  const res = await apiFetch('/api/wod')
+  if (!res.ok) throw new Error(`getAllWodRecords: ${res.status}`)
+  const { records } = await res.json()
+  return records
 }
 
-export async function getWodRecords(userId: string, wodName: string): Promise<WodRecord[]> {
-  const { data, error } = await supabase
-    .from('wod_records')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('wod_name', wodName)
-    .order('recorded_at', { ascending: false })
-  if (error) throw error
-  return data || []
+export async function getWodRecords(wodName: string): Promise<WodRecord[]> {
+  const res = await apiFetch(`/api/wod?name=${encodeURIComponent(wodName)}`)
+  if (!res.ok) throw new Error(`getWodRecords: ${res.status}`)
+  const { records } = await res.json()
+  return records
 }
 
-export async function createWodRecord(userId: string, record: Omit<WodRecord, 'id' | 'user_id' | 'created_at'>): Promise<WodRecord> {
-  const { data, error } = await supabase
-    .from('wod_records')
-    .insert({ user_id: userId, ...record })
-    .select()
-    .single()
-  if (error) throw error
-  return data
+export async function createWodRecord(record: Omit<WodRecord, 'id' | 'user_id' | 'created_at'>): Promise<WodRecord> {
+  const res = await apiFetch('/api/wod', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(record),
+  })
+  if (!res.ok) throw new Error(`createWodRecord: ${res.status}`)
+  const { record: saved } = await res.json()
+  return saved
 }
 
-export async function deleteWodRecord(id: string) {
-  const { error } = await supabase.from('wod_records').delete().eq('id', id)
-  if (error) throw error
+export async function deleteWodRecord(id: string): Promise<void> {
+  const res = await apiFetch(`/api/wod?id=${id}`, { method: 'DELETE' })
+  if (!res.ok) throw new Error(`deleteWodRecord: ${res.status}`)
 }
