@@ -24,7 +24,7 @@ INSERT INTO ddodun.workout_templates (date, day_of_week, section, workout_type, 
 ('2026-08-20', 'THU', 'B', 'strength', 'Deficit Deadlift', E'Build to a tough 5 @ RPE 8', 2),
 ('2026-08-20', 'THU', 'B', 'strength', NULL, E'— into —\nEMOM 5\n3 Deficit Deadlift @ 80% of Today tough 5', 3),
 ('2026-08-20', 'THU', 'C', 'accessory', NULL, E'3 Sets\n6~9 Glute Ham Raises\nRest 1:00\n1:00 Husafell Bear Hug Hold @ 150lb\nRest 2:00', 4),
-('2026-08-20', 'THU', 'D', 'metcon', NULL, E'For time of :\n21-15-9-15-21\nDB Lateral Burpees\nDB(2) Deadlift 50lb\n* 100ft Farmers Carry b/w Sets', 5);
+('2026-08-20', 'THU', 'D', 'metcon', NULL, E'For time of : 21-15-9-15-21\nDB Lateral Burpees\nDB(2) Deadlift 50lb\n* 100ft Farmers Carry b/w Sets', 5);
 
 -- FRI 2026-08-21
 INSERT INTO ddodun.workout_templates (date, day_of_week, section, workout_type, title, description, sort_order) VALUES

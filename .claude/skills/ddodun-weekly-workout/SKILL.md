@@ -98,6 +98,16 @@ description lines = exercises). A plain lift name (`Back Squat`, `Bench Press`, 
   - **`* and then,`** — the `*` is mandatory; without it "and then," parses as an exercise and the group won't split.
 - **Apostrophes** in `E'…'` must be doubled: `3's Descent` → `3''s Descent`, `2's Pause` → `2''s Pause`. (The JSON inserter decodes `''`→`'`.)
 - **Set/rep schemes are setInfo, not exercises** — `30-20-10 reps`, `5 rounds for time of :` go in title or as the first/setInfo line, never as a plain movement line.
+- **`For time of :` + rep scheme on the next line → merge into ONE line.** The image often prints
+  `For time of :` and `21-15-9-15-21` on separate lines. Do **not** transcribe them as two lines, and do
+  **not** put `For time of :` in `title`:
+  - `title='For time of :'` + `description` starting `21-15-9-15-21` → the section header shows the title
+    and the setInfo is rendered **nowhere** (the block that draws it only runs for the 2nd+ group).
+    The rep scheme silently disappears. `validate.mjs` now flags this combination.
+  - `title=NULL` + two separate lines → the scheme becomes a plain exercise row with a pointless lb button.
+  - **Correct:** `title=NULL`, first description line `For time of : 21-15-9-15-21`. It matches
+    `/^for\s+time/i`, so the whole thing becomes the grey header. Same for `AMRAP N` / `EMOM N` with a
+    trailing scheme.
 - **`AMRAP N` is setInfo, never an exercise name.** Standalone `AMRAP 6` → grey setInfo (parser has `/^amrap\s+\d/i`). But if a prior setInfo (e.g. `6 Sets`) already claimed the slot, wrap as `(AMRAP 2)` on the next line so it merges → `6 Sets · (AMRAP 2)` (week13 `5 Sets\n(AMRAP 2:30 / Rest 1:30)`). Section-leading AMRAP may instead be `title='AMRAP N'` (section header). **Two AMRAP blocks in one section** (`AMRAP 12 … - Rest 3:00 - … AMRAP 6 …`): split into 2 rows — row2 starts `Rest 3:00`(leadingRest, drop the surrounding dashes so `/^Rest\s+/i` matches) then `AMRAP 6`(group setInfo).
 - **Modifiers stay on the movement's line** — `(3's Descent)`, `@ Heavy`, `@ 70~80%` belong on the same line as the movement, not a separate line.
 - **Directives are notes** — `Find Heavy Sets`, `Target Under 12:00` → `* Find Heavy Sets` (prefix `*`); conventionally placed AFTER the movement line.
