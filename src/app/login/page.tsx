@@ -6,7 +6,7 @@ import { ChevronLeft } from 'lucide-react'
 import PinInput from '@/components/auth/PinInput'
 import { getLastUsername, setLastUsername } from '@/lib/auth'
 
-type Step = 'username' | 'pin-verify'
+type Step = 'username' | 'pin-verify' | 'pin-setup' | 'pin-setup-confirm'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [pinError, setPinError] = useState(false)
   const [pinErrorMessage, setPinErrorMessage] = useState('')
+  const [setupPin, setSetupPin] = useState('')
 
   useEffect(() => {
     setUsername(getLastUsername())
@@ -26,15 +27,45 @@ export default function LoginPage() {
     setStep('username')
     setPinError(false)
     setPinErrorMessage('')
+    setSetupPin('')
   }
 
   async function handleNext() {
     if (!username.trim()) return
     setUsernameError('')
-    setStep('pin-verify')
+    setLoading(true)
+    try {
+      // PIN 미설정 계정이면 입력이 아니라 설정 화면으로 보낸다.
+      // 조회에 실패하면 기존 동작(PIN 입력)으로 넘어간다 — 로그인 자체는 막지 않는다.
+      const res = await fetch(`/api/auth/pin-status?username=${encodeURIComponent(username.trim())}`)
+      const needsSetup = res.ok ? (await res.json()).needsSetup === true : false
+      setStep(needsSetup ? 'pin-setup' : 'pin-verify')
+    } catch {
+      setStep('pin-verify')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  async function submitPin(pin: string) {
+  function handleSetupPin(pin: string) {
+    setPinError(false)
+    setPinErrorMessage('')
+    setSetupPin(pin)
+    setStep('pin-setup-confirm')
+  }
+
+  function handleConfirmPin(pin: string) {
+    if (pin !== setupPin) {
+      setSetupPin('')
+      setPinError(true)
+      setPinErrorMessage('PIN이 일치하지 않습니다. 다시 설정해주세요')
+      setStep('pin-setup')
+      return
+    }
+    submitPin(pin, pin)
+  }
+
+  async function submitPin(pin: string, confirmPin?: string) {
     setPinError(false)
     setPinErrorMessage('')
     setLoading(true)
@@ -42,7 +73,7 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), pin, autoLogin }),
+        body: JSON.stringify({ username: username.trim(), pin, confirmPin, autoLogin }),
       })
       if (res.status === 404) {
         setStep('username')
@@ -127,8 +158,20 @@ export default function LoginPage() {
       <h1 className="text-3xl font-bold text-accent mb-2">DDODUN</h1>
       <PinInput
         key={step}
-        title="PIN을 입력하세요"
-        onComplete={submitPin}
+        title={
+          step === 'pin-setup'
+            ? '사용할 PIN을 설정하세요'
+            : step === 'pin-setup-confirm'
+              ? 'PIN을 한 번 더 입력하세요'
+              : 'PIN을 입력하세요'
+        }
+        onComplete={
+          step === 'pin-setup'
+            ? handleSetupPin
+            : step === 'pin-setup-confirm'
+              ? handleConfirmPin
+              : submitPin
+        }
         error={pinError}
         errorMessage={pinErrorMessage}
         onErrorReset={handlePinErrorReset}

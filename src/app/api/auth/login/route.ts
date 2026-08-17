@@ -10,7 +10,7 @@ const LOCK_DURATION_MS = 15 * 60 * 1000
 
 export async function POST(req: Request) {
   try {
-    const { username, pin, autoLogin } = await req.json()
+    const { username, pin, confirmPin, autoLogin } = await req.json()
 
     if (typeof username !== 'string' || typeof pin !== 'string' || !/^\d{4}$/.test(pin)) {
       return Response.json({ error: 'bad request' }, { status: 400 })
@@ -39,7 +39,12 @@ export async function POST(req: Request) {
     }
 
     if (user.pin_hash === null) {
-      // 최초 로그인: 전달된 PIN을 설정하고 실패 카운터를 초기화한다
+      // PIN 미설정 계정: 이 요청이 곧 PIN 설정이므로 확인 입력을 반드시 요구한다.
+      // 확인 없이 설정되면 오타가 그대로 PIN 이 되어 본인도 못 들어온다.
+      if (typeof confirmPin !== 'string' || confirmPin !== pin) {
+        return Response.json({ error: 'pin confirmation required' }, { status: 400 })
+      }
+      // 전달된 PIN을 설정하고 실패 카운터를 초기화한다
       const { error: upErr } = await db
         .from('users')
         .update({ pin_hash: hashPin(pin), failed_attempts: 0, locked_until: null })
