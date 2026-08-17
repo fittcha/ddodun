@@ -119,6 +119,14 @@ for (const day of Object.keys(byDay)) {
       console.log(`    └ row${idx + 1} so=${t.sort} type=${t.type} title=${t.title ? `"${t.title}"${titleSec ? '(SECTION)' : ''}` : 'NULL'}`
         + (idx > 0 ? (sep ? ' [NEW GROUP ✓]' : ' [⚠ NO SEPARATOR — merges into prev group]') : ''))
       if (idx > 0 && !sep) flag(`${day} ${sec}#${idx + 1}: 2nd+ template lacks setInfo/leadingRest → no own group`)
+      // 섹션 제목이 헤더를 차지하면, 첫 그룹의 setInfo 는 화면 어디에도 렌더링되지 않는다.
+      // (그룹 구분자 블록은 idx>0 에서만 그려지고, 섹션 헤더는 title 을 우선한다.)
+      // 이 조합이면 rep scheme 같은 정보가 조용히 사라진다 — title 을 NULL 로 두고
+      // 그 문구를 description 첫 줄로 내려야 한다.
+      if (idx === 0 && titleSec && p.setInfo) {
+        flag(`${day} ${sec}#1: title="${t.title}"(SECTION)이 헤더를 차지해 setInfo ${JSON.stringify(p.setInfo)} 가 화면에 안 나옴 `
+          + `→ title 을 NULL 로 하고 "${t.title}" 를 description 첫 줄로 옮길 것`)
+      }
       if (p.setInfo) console.log(`         setInfo : ${JSON.stringify(p.setInfo)}`)
       for (const ol of p.orderedLines) {
         const mark = ol.type === 'exercise' ? '🏋' : ol.type === 'note' ? '  ·' : ' ▸'

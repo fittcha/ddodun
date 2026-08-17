@@ -7,7 +7,7 @@ INSERT INTO ddodun.workout_templates (date, day_of_week, section, workout_type, 
 ('2026-08-10', 'MON', 'D', 'strength', 'Bench Press', E'5 x 7 @ RPE 9\n* Rest 2:00 b/w sets', 4),
 ('2026-08-10', 'MON', 'D', 'accessory', NULL, E'* and then,\n4 Sets\n8 Incline DB Bench Press @ RPE 9\n12 DB Chest Fly @ Tough\n8~12 Banded Wide Grip Strict Pull ups\n* Rest no more than 3:00 b/w sets', 5),
 ('2026-08-10', 'MON', 'D', 'accessory', NULL, E'* and then,\n4 Sets\n8 Barbell Row\n12/12 SA DB Row\n* Rest 2:00 b/w sets', 6),
-('2026-08-10', 'MON', 'E', 'metcon', 'For time of :', E'2-4-6-8-10-8-6-4-2\nPower Snatch 75lb\nBurpee Over the bar\n* Time Cap 10:00', 7);
+('2026-08-10', 'MON', 'E', 'metcon', NULL, E'For time of :\n2-4-6-8-10-8-6-4-2\nPower Snatch 75lb\nBurpee Over the bar\n* Time Cap 10:00', 7);
 
 -- TUE 2026-08-11
 INSERT INTO ddodun.workout_templates (date, day_of_week, section, workout_type, title, description, sort_order) VALUES
