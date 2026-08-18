@@ -85,9 +85,16 @@ export default function LoginPage() {
         setPinErrorMessage('로그인 시도가 너무 많아 계정이 잠겼습니다. 잠시 후 다시 시도해주세요')
         return
       }
-      if (!res.ok) {
+      if (res.status === 401) {
         setPinError(true)
         setPinErrorMessage('PIN이 올바르지 않습니다')
+        return
+      }
+      if (!res.ok) {
+        // 401 이 아닌 실패는 PIN 문제가 아니다. 서버 설정 누락(SESSION_SECRET 등)이나
+        // DB 오류를 "PIN이 올바르지 않습니다"로 표시하면 원인을 완전히 오도한다.
+        setPinError(true)
+        setPinErrorMessage(`로그인에 실패했습니다 (오류 ${res.status}). 잠시 후 다시 시도해주세요`)
         return
       }
       setLastUsername(username.trim())
