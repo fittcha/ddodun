@@ -1,0 +1,399 @@
+{
+  "deleted_at": "2026-08-18",
+  "reason": "중복 로그 정리",
+  "rows": [
+    {
+      "id": "2ae4ada5-eee8-49b5-bc3c-db587295aa85",
+      "date": "2026-03-27",
+      "template_id": "5152dff4-6e31-4411-9248-74f3c6d35664",
+      "section": "E",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": true,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": null,
+      "memo": null,
+      "created_at": "2026-03-27T01:43:22.113133+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "9433c1f2-c799-4cd8-99a5-d50975dd9f2f",
+      "date": "2026-03-27",
+      "template_id": "5152dff4-6e31-4411-9248-74f3c6d35664",
+      "section": "E",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": true,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": {
+        "_memo_open": true
+      },
+      "memo": "11:",
+      "created_at": "2026-03-27T01:43:26.521056+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "d1221731-67ea-4406-9d33-3772f3e7f444",
+      "date": "2026-03-27",
+      "template_id": "5152dff4-6e31-4411-9248-74f3c6d35664",
+      "section": "E",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": true,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": {
+        "_memo_open": true
+      },
+      "memo": "11:33 / 11:04 / 10:11",
+      "created_at": "2026-03-27T01:43:24.085652+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "caff6027-4c6d-4455-827d-a190c5380b4b",
+      "date": "2026-05-11",
+      "template_id": "6a074f50-6080-4e32-b9f5-7a8138518aa7",
+      "section": "C",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": false,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": {
+        "weight": null,
+        "weight_unit": "lb"
+      },
+      "memo": null,
+      "created_at": "2026-05-11T00:57:29.949825+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "282a2f62-0d9a-44c4-b9e9-3223cbd5bee1",
+      "date": "2026-05-19",
+      "template_id": "648b438e-5944-4112-a27c-49f2a1004fe2",
+      "section": "I",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": true,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": null,
+      "memo": null,
+      "created_at": "2026-05-19T03:04:05.487033+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "b15aeabf-872b-4641-9ff7-ef63488dc3a2",
+      "date": "2026-05-19",
+      "template_id": "648b438e-5944-4112-a27c-49f2a1004fe2",
+      "section": "I",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": false,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": {
+        "cal": 33,
+        "reps": null,
+        "rounds": null,
+        "minutes": null,
+        "seconds": null,
+        "extra_reps": null,
+        "result_sets": [
+          {
+            "cal": 33,
+            "reps": null,
+            "rounds": null,
+            "minutes": null,
+            "seconds": null,
+            "extra_reps": null
+          },
+          {
+            "cal": 36
+          },
+          {}
+        ],
+        "result_type": "cal"
+      },
+      "memo": null,
+      "created_at": "2026-05-19T03:04:05.486665+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "ebb84a34-a4bb-4c8a-8c17-9aa6efeeb69a",
+      "date": "2026-05-27",
+      "template_id": "261de1a2-f3ca-48b4-a6ac-e686467bc0d1",
+      "section": "B",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": true,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": null,
+      "memo": null,
+      "created_at": "2026-05-27T01:05:31.884922+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "658851b4-4874-4b84-b09e-bbee423d63e5",
+      "date": "2026-06-10",
+      "template_id": "3d7bfb1c-f6b3-4558-b2bd-f5118f62a344",
+      "section": "G",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": true,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": {
+        "result_type": "time",
+        "_result_open": true
+      },
+      "memo": null,
+      "created_at": "2026-06-10T03:32:49.705052+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "58230c90-a66e-4246-ab09-2cb820dfc5ec",
+      "date": "2026-06-10",
+      "template_id": "3d7bfb1c-f6b3-4558-b2bd-f5118f62a344",
+      "section": "G",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": true,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": null,
+      "memo": null,
+      "created_at": "2026-06-10T03:32:49.70506+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "aa385463-1fc2-4fa6-bc1b-cce730cad0a6",
+      "date": "2026-06-10",
+      "template_id": "3d7bfb1c-f6b3-4558-b2bd-f5118f62a344",
+      "section": "G",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": true,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": {
+        "cal": null,
+        "reps": null,
+        "rounds": null,
+        "minutes": 9,
+        "seconds": null,
+        "extra_reps": null,
+        "result_sets": [
+          {
+            "cal": null,
+            "reps": null,
+            "rounds": null,
+            "minutes": 9,
+            "seconds": null,
+            "extra_reps": null
+          }
+        ],
+        "result_type": "time",
+        "_result_open": true
+      },
+      "memo": null,
+      "created_at": "2026-06-10T03:32:49.711711+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "0365a07a-5b3f-4c3b-91fd-028b484c23ba",
+      "date": "2026-06-11",
+      "template_id": "b151c35b-8169-4b5d-b7e8-e1591fbcbbac",
+      "section": "D",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": true,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": null,
+      "memo": null,
+      "created_at": "2026-06-11T03:15:34.646103+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "0673eb16-ebb2-4da5-9024-4ea828cf7215",
+      "date": "2026-06-15",
+      "template_id": "e38fd03c-15ae-4ea8-a1e4-9c5609df8487",
+      "section": "E",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": true,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": null,
+      "memo": null,
+      "created_at": "2026-06-15T02:40:59.819753+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "fa49ae02-b11c-45b0-9e71-c04c281668b7",
+      "date": "2026-06-29",
+      "template_id": "6daf03a6-b91b-4f8b-9964-d4c69070d234",
+      "section": "D",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": false,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": {
+        "_result_open": true
+      },
+      "memo": null,
+      "created_at": "2026-06-29T02:02:48.275209+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "735e7607-685b-4622-bb1b-b4a90c96a442",
+      "date": "2026-07-03",
+      "template_id": "908a75e8-4160-4a79-9b90-0daf74fd5bfb",
+      "section": "D",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": true,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": {
+        "weight": 130,
+        "weight_unit": "lb"
+      },
+      "memo": null,
+      "created_at": "2026-07-03T01:52:06.903305+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "fe782404-808c-41dd-809e-7d8e813026d8",
+      "date": "2026-07-07",
+      "template_id": "a47a11a9-1c22-4bc6-a378-6a9d6c42921d",
+      "section": "E",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": true,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": {
+        "cal": null,
+        "reps": null,
+        "rounds": null,
+        "minutes": 6,
+        "seconds": 16,
+        "extra_reps": null,
+        "result_sets": [
+          {
+            "cal": null,
+            "reps": null,
+            "rounds": null,
+            "minutes": 6,
+            "seconds": 16,
+            "extra_reps": null
+          },
+          {
+            "minutes": 6,
+            "seconds": 6
+          },
+          {
+            "minutes": 5,
+            "seconds": 59
+          }
+        ],
+        "result_type": "time"
+      },
+      "memo": null,
+      "created_at": "2026-07-07T01:15:29.701056+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "5b19b9ed-358d-44b7-983e-49a70a15c4cf",
+      "date": "2026-08-05",
+      "template_id": "cf7dd5ca-89d7-4edd-a5df-d7d9e3cabea3",
+      "section": "A",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": false,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": {
+        "_result_open": true
+      },
+      "memo": null,
+      "created_at": "2026-08-05T00:07:22.927021+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "fe8a9ff2-489f-47d2-9fec-b84e61846266",
+      "date": "2026-08-06",
+      "template_id": "a4b3ced5-b422-4d19-a0af-04c1afa61a1f",
+      "section": "D",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": true,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": null,
+      "memo": null,
+      "created_at": "2026-08-06T03:13:25.170676+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "e743e36c-3bd7-4057-8c9d-7ce50dcf34dd",
+      "date": "2026-08-13",
+      "template_id": "bbee3608-8f3b-4495-acf3-2a4e559bd61e",
+      "section": "C",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": false,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": {
+        "sets": [
+          {
+            "weight": 175
+          },
+          {
+            "weight": 190
+          },
+          {
+            "weight": 200
+          },
+          {
+            "weight": 180
+          },
+          {
+            "weight": 195
+          },
+          {
+            "weight": 205
+          }
+        ],
+        "result_type": "weight",
+        "weight_unit": "lb",
+        "_result_open": true
+      },
+      "memo": null,
+      "created_at": "2026-08-12T10:52:21.931845+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    },
+    {
+      "id": "9511ec01-1e6c-491e-9253-27a9a0d6f622",
+      "date": "2026-08-18",
+      "template_id": "c1a460a8-99c3-4a04-b356-5a2f103fe8ce",
+      "section": "A",
+      "is_custom": false,
+      "exercise_name": null,
+      "completed": true,
+      "result_value": null,
+      "result_unit": null,
+      "sets_detail": null,
+      "memo": null,
+      "created_at": "2026-08-18T00:31:49.636375+00:00",
+      "user_id": "eea07b65-70dd-468d-b63f-354fc0754efb"
+    }
+  ]
+}
