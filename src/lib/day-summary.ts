@@ -177,9 +177,13 @@ export function reconcileSummary(
   const templateById = new Map(templates.map(t => [t.id, t] as const))
   const logByTemplate = new Map<string, WorkoutLog>()
   for (const l of logs) if (l.template_id) logByTemplate.set(l.template_id, l)
-  const completedIds = logs
-    .filter(l => l.template_id && l.completed && templateById.has(l.template_id))
-    .map(l => l.template_id as string)
+  // 한 템플릿에 로그 행이 둘 이상 있으면(동시 저장 경쟁으로 실제 발생) 같은 id 가 두 번
+  // 들어와 요약 블록에 섹션이 중복 출력된다. 중복을 제거한다.
+  const completedIds = [...new Set(
+    logs
+      .filter(l => l.template_id && l.completed && templateById.has(l.template_id))
+      .map(l => l.template_id as string),
+  )]
 
   // 문서 없음 → 완료된 것만으로 전체 생성 (리셋과 동일). 그룹 단위(코치 섹션/추가운동 그룹)로 분리.
   if (!stored) {

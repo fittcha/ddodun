@@ -32,6 +32,33 @@ export async function POST(req: Request) {
     }
 
     const { id, created_at, user_id, ...insert } = body
+
+    // id 없이 들어온 저장이라도 같은 (user, date, template_id) 로그가 이미 있으면 갱신한다.
+    // 같은 항목을 동시에 두 번 저장하면 양쪽 다 "기존 행 없음"으로 판단해 각각 INSERT 했고,
+    // 그 결과 한 운동에 로그가 두 행 생겨 요약에 섹션이 중복 출력됐다.
+    // template_id 가 없는 커스텀 로그는 대상이 아니다.
+    if (insert.template_id) {
+      const { data: prior, error: priorErr } = await db
+        .from('workout_logs')
+        .select('id')
+        .eq('user_id', session.user_id)
+        .eq('date', insert.date)
+        .eq('template_id', insert.template_id)
+        .order('created_at')
+        .limit(1)
+      if (priorErr) throw priorErr
+      if (prior && prior.length > 0) {
+        const { data, error } = await db
+          .from('workout_logs')
+          .update(insert)
+          .eq('id', prior[0].id)
+          .select()
+          .single()
+        if (error) throw error
+        return Response.json({ log: data })
+      }
+    }
+
     const { data, error } = await db
       .from('workout_logs')
       .insert({ ...insert, user_id: session.user_id })
