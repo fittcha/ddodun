@@ -26,6 +26,24 @@ async function getJson<T>(url: string): Promise<T> {
   return res.json()
 }
 
+/**
+ * /api/workouts/[date] 는 templates 와 extras 를 함께 돌려준다. 화면들은 둘을 각각
+ * 다른 함수로 가져가므로, 그대로 두면 같은 날짜에 대해 왕복이 두 번 발생하고 매번
+ * 응답의 절반을 버린다. 같은 tick 안에서 겹치는 요청은 하나로 합친다.
+ */
+type WorkoutsResponse = { templates: WorkoutTemplate[]; extras: WorkoutTemplate[] }
+const inflight = new Map<string, Promise<WorkoutsResponse>>()
+
+function fetchWorkouts(date: string): Promise<WorkoutsResponse> {
+  const existing = inflight.get(date)
+  if (existing) return existing
+  const p = getJson<WorkoutsResponse>(`/api/workouts/${date}`)
+  inflight.set(date, p)
+  // 진행 중인 요청만 공유한다. 끝나면 즉시 비워서 다음 조회가 항상 최신을 받게 한다.
+  p.finally(() => inflight.delete(date))
+  return p
+}
+
 export async function getTemplateDatesByMonth(year: number, month: number): Promise<string[]> {
   const { dates } = await getJson<{ dates: string[] }>(`/api/calendar/${year}/${month}`)
   return dates
@@ -39,13 +57,11 @@ export async function getTemplateDatesByRange(startDate: string, endDate: string
 }
 
 export async function getTemplatesByDate(date: string): Promise<WorkoutTemplate[]> {
-  const { templates } = await getJson<{ templates: WorkoutTemplate[] }>(`/api/workouts/${date}`)
-  return templates
+  return (await fetchWorkouts(date)).templates
 }
 
 export async function getExtraTemplatesByDate(date: string): Promise<WorkoutTemplate[]> {
-  const { extras } = await getJson<{ extras: WorkoutTemplate[] }>(`/api/workouts/${date}`)
-  return extras
+  return (await fetchWorkouts(date)).extras
 }
 
 export async function duplicateSectionToDate(
