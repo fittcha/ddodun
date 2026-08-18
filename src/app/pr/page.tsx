@@ -72,7 +72,6 @@ export default function PRPage() {
   const userId = user?.id || ''
 
   const loadData = useCallback(async () => {
-    if (!user) return
     try {
       const [rm, nrm, pace] = await Promise.all([
         getAll1RM(),
@@ -85,7 +84,7 @@ export default function PRPage() {
     } catch (err) {
       console.error('Failed to load PR data:', err)
     }
-  }, [user])
+  }, [])
 
   useEffect(() => { loadData() }, [loadData])
 

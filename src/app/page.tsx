@@ -15,13 +15,11 @@ import {
   type Competition,
 } from '@/lib/api/competitions'
 import { getToday, getWeekdaysInMonth, getDday } from '@/lib/date-utils'
-import { useSession } from '@/hooks/useSession'
 import TodaySummary from '@/components/home/TodaySummary'
 import { getDaySummary, upsertDaySummary, type DaySummary, type DaySummaryBlock } from '@/lib/api/day-summaries'
 
 export default function HomePage() {
   const router = useRouter()
-  const { user } = useSession()
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth() + 1)
@@ -44,8 +42,9 @@ export default function HomePage() {
   }, [todayStr])
 
   const loadData = useCallback(async () => {
-    if (!user) return
-
+    // 세션 확인을 기다리지 않는다. 서버가 쿠키에서 신원을 꺼내므로 클라이언트는
+    // user 를 몰라도 되고, 기다리면 왕복이 한 번 더 직렬로 붙는다.
+    // 미인증이면 각 요청이 401 을 받고 apiFetch 가 /login 으로 보낸다.
     // Fetch calendar data and today's summary independently
     const calendarPromise = Promise.all([
       getTemplateDatesByMonth(year, month),
@@ -76,7 +75,7 @@ export default function HomePage() {
     })
 
     await Promise.all([calendarPromise, todayPromise])
-  }, [year, month, todayStr, user])
+  }, [year, month, todayStr])
 
   useEffect(() => {
     loadData()

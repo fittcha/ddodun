@@ -50,7 +50,6 @@ function WorkoutContent() {
   }, [weekDays[0]]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadData = useCallback(async () => {
-    if (!user) return
     const cached = dateCache.get(date)
     if (cached) {
       setTemplates(cached.templates)
@@ -90,7 +89,7 @@ function WorkoutContent() {
     } finally {
       setLoading(false)
     }
-  }, [date, user])
+  }, [date])
 
   useEffect(() => {
     loadData()
