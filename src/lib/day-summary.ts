@@ -210,7 +210,9 @@ export function reconcileSummary(
   }
 
   let text = stored.text
-  const blocks: DaySummaryBlock[] = stored.blocks.map(b => ({ ...b, template_ids: [...b.template_ids] }))
+  // 저장된 블록에도 중복 template_id 가 남아 있을 수 있다(동시 저장으로 로그가 두 행
+  // 생겼던 시기의 요약). 그대로 두면 같은 섹션이 두 번 출력되므로 읽는 시점에 제거한다.
+  const blocks: DaySummaryBlock[] = stored.blocks.map(b => ({ ...b, template_ids: [...new Set(b.template_ids)] }))
   let dirty = false
   // 구버전 블록(order 없음) 호환: 템플릿에서 정렬 키를 일관되게 유도
   const orderOf = (b: DaySummaryBlock): string => {
