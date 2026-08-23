@@ -42,4 +42,4 @@ INSERT INTO ddodun.workout_templates (date, day_of_week, section, workout_type, 
 ('2026-08-28', 'FRI', 'C', 'skill', NULL, E'4 Sets\n200m Ski-erg\n6~8 Unbroken Strict Bar Dips\n200m Ski-erg\n6~8 Unbroken Strict Pull ups\n5 Wall Walks @ Fast\n* Rest 2:00 b/w sets', 3),
 ('2026-08-28', 'FRI', 'D', 'weightlifting', NULL, E'Every 0:45 x 10\n2 Speed Deadlift @ 50%', 4),
 ('2026-08-28', 'FRI', 'E', 'accessory', NULL, E'3 Sets\n10 DB Raise Complex\n* 1 DB RC = 1 Front + 1 Lateral\n10 DB Hammer Curls\n10 DB Deadstop Tricep Extensions\n* Rest as needed', 5),
-('2026-08-28', 'FRI', 'F', 'accessory', NULL, E'Accumulate 5:00 Husafell Bearhug Hold @ 150lb\n* Whenever Break, 30m Slow DB(2) Overhead Carry 20lb', 6);
+('2026-08-28', 'FRI', 'F', 'accessory', NULL, E'Accumulate 5:00\nHusafell Bearhug Hold @ 150lb\n* Whenever Break, 30m Slow DB(2) Overhead Carry 20lb', 6);
