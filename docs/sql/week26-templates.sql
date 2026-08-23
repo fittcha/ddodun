@@ -4,9 +4,10 @@ INSERT INTO ddodun.workout_templates (date, day_of_week, section, workout_type, 
 ('2026-08-24', 'MON', 'A', 'weightlifting', NULL, E'Every 2:30 x 4\n3 Front Squat @ 70%\n* w/ 4''s lowering / eccentric every rep', 1),
 ('2026-08-24', 'MON', 'B', 'weightlifting', NULL, E'AMRAP 5\nMax Squat Clean to Overhead @ 105lb', 2),
 ('2026-08-24', 'MON', 'C', 'strength', 'Deficit Romanian Deadlift', E'@ 3111 Tempo\n2 x 10 @ RPE 8\n* Rest 2:00 b/w sets', 3),
-('2026-08-24', 'MON', 'D', 'metcon', NULL, E'4 Sets\n(AMRAP 4)\n500m Row\nRemaining Time\nMax Cal Assault Bike\n* Rest 3:00 b/w sets', 4),
-('2026-08-24', 'MON', 'E', 'accessory', NULL, E'3 Sets\n7 Glute Ham Raises\n* Rest 1:00 b/w sets', 5),
-('2026-08-24', 'MON', 'F', 'accessory', NULL, E'3 Sets\n10 Jefferson Curls @ Empty Bar\n20 Seated Hamstring Curl @ Moderate Band\n* Rest 1:30 b/w sets', 6);
+('2026-08-24', 'MON', 'D', 'metcon', NULL, E'4 Sets\n(AMRAP 4)\n500m Row', 4),
+('2026-08-24', 'MON', 'D', 'cardio', NULL, E'Remaining Time\nMax Cal Assault Bike\n* Rest 3:00 b/w sets', 5),
+('2026-08-24', 'MON', 'E', 'accessory', NULL, E'3 Sets\n7 Glute Ham Raises\n* Rest 1:00 b/w sets', 6),
+('2026-08-24', 'MON', 'F', 'accessory', NULL, E'3 Sets\n10 Jefferson Curls @ Empty Bar\n20 Seated Hamstring Curl @ Moderate Band\n* Rest 1:30 b/w sets', 7);
 
 -- TUE 2026-08-25
 INSERT INTO ddodun.workout_templates (date, day_of_week, section, workout_type, title, description, sort_order) VALUES

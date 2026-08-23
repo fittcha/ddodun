@@ -44,6 +44,7 @@ function parseDescription(desc) {
       || (dashRepCount > 1 && dashRepPattern.test(line))
       || /^[-—]\s*\w*\s*into\s*[-—]/i.test(line)
       || /^[-—]?\s*followed\s+by\s*[-—]?$/i.test(line)
+      || /^remaining\s+time\b/i.test(line)
     ) { notes.push(line); orderedLines.push({ text: line, type: 'note' }) }
     else { exercises.push(line); orderedLines.push({ text: line, type: 'exercise' }) }
   }
@@ -54,7 +55,8 @@ const hasLeadingRest = p => p.orderedLines.length > 0 && p.orderedLines[0].type 
   && (/^Rest\s+/i.test(p.orderedLines[0].text)
     || /^[-—]\s*\w*\s*into\s*[-—]/i.test(p.orderedLines[0].text)
     || /and\s+then/i.test(p.orderedLines[0].text)
-    || /followed\s+by/i.test(p.orderedLines[0].text))
+    || /followed\s+by/i.test(p.orderedLines[0].text)
+    || /^remaining\s+time\b/i.test(p.orderedLines[0].text))
 
 // ---------- extract VALUES tuples ----------
 const sql = readFileSync(file, 'utf8')

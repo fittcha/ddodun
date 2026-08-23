@@ -87,6 +87,7 @@ function parseDescription(desc: string | null): {
       || (dashRepCount > 1 && dashRepPattern.test(line))
       || /^[-—]\s*\w*\s*into\s*[-—]/i.test(line)
       || /^[-—]?\s*followed\s+by\s*[-—]?$/i.test(line)
+      || /^remaining\s+time\b/i.test(line)
     ) {
       notes.push(line)
       orderedLines.push({ text: line, type: 'note' })
@@ -96,6 +97,26 @@ function parseDescription(desc: string | null): {
     }
   }
   return { setInfo, exercises, notes, orderedLines }
+}
+
+/**
+ * 그룹 구분자로 쓰이는 선행 노트. 첫 줄이 이 중 하나면 그 행은 앞 그룹에 붙지 않고
+ * 자체 결과/메모 패널을 가진 새 그룹이 된다.
+ *
+ * 패턴을 추가할 때는 parseDescription 의 note 판정에도 같은 패턴을 넣어야 한다.
+ * note 로 분류되지 않으면 여기 도달하지 못하고 그냥 운동 줄이 된다.
+ */
+const SEPARATOR_NOTE_PATTERNS = [
+  /^Rest\s+/i,
+  /^[-—]\s*\w*\s*into\s*[-—]/i,
+  /and\s+then/i,
+  /followed\s+by/i,
+  /^remaining\s+time\b/i,
+]
+
+function isSeparatorNote(parsed: { orderedLines: { text: string; type: LineType }[] }): boolean {
+  const first = parsed.orderedLines[0]
+  return !!first && first.type === 'note' && SEPARATOR_NOTE_PATTERNS.some(re => re.test(first.text))
 }
 
 // Titles that are section-level labels, not exercise names
@@ -172,7 +193,7 @@ function computeGroups(templates: WorkoutTemplate[]): TemplateGroup[] {
 
   for (let idx = 0; idx < templates.length; idx++) {
     const parsed = parseDescription(templates[idx].description)
-    const hasLeadingRest = parsed.orderedLines.length > 0 && parsed.orderedLines[0].type === 'note' && (/^Rest\s+/i.test(parsed.orderedLines[0].text) || /^[-—]\s*\w*\s*into\s*[-—]/i.test(parsed.orderedLines[0].text) || /and\s+then/i.test(parsed.orderedLines[0].text) || /followed\s+by/i.test(parsed.orderedLines[0].text))
+    const hasLeadingRest = isSeparatorNote(parsed)
     const showSeparator = idx > 0 && (parsed.setInfo || hasLeadingRest)
 
     if (showSeparator && current.length > 0) {
@@ -189,7 +210,7 @@ function computeGroups(templates: WorkoutTemplate[]): TemplateGroup[] {
       const prevTemplate = templates[idx - 1]
       const prevParsed = parseDescription(prevTemplate.description)
       const restNote = prevParsed.notes.find(n => /rest\s+as\s+needed/i.test(n)) || null
-      const leadingRest = parsed.orderedLines.length > 0 && parsed.orderedLines[0].type === 'note' && (/^Rest\s+/i.test(parsed.orderedLines[0].text) || /^[-—]\s*\w*\s*into\s*[-—]/i.test(parsed.orderedLines[0].text) || /and\s+then/i.test(parsed.orderedLines[0].text) || /followed\s+by/i.test(parsed.orderedLines[0].text))
+      const leadingRest = isSeparatorNote(parsed)
         ? parsed.orderedLines[0].text : null
 
       current = [templates[idx]]
@@ -812,7 +833,7 @@ function WorkoutSectionInner({ section, templates, logs, date, onLogUpdate, disp
               const unit = getUnit(template.id)
 
               const titleIsSection = isSectionTitle(template.title)
-              const leadingRest = parsed.orderedLines.length > 0 && parsed.orderedLines[0].type === 'note' && (/^Rest\s+/i.test(parsed.orderedLines[0].text) || /^[-—]\s*\w*\s*into\s*[-—]/i.test(parsed.orderedLines[0].text) || /and\s+then/i.test(parsed.orderedLines[0].text) || /followed\s+by/i.test(parsed.orderedLines[0].text))
+              const leadingRest = isSeparatorNote(parsed)
                 ? parsed.orderedLines[0].text : null
 
               return (
