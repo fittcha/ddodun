@@ -64,6 +64,11 @@ function parseDescription(desc: string | null): {
       setInfo = line
     } else if (!setInfo && /^EMOM\s+\d+/i.test(line)) {
       setInfo = line
+    } else if (!setInfo && /^e\d+mom\b/i.test(line)) {
+      // E2MOM x 6 / E3MOM x 3 등. isSectionTitle 은 이미 이 형태를 섹션 제목으로
+      // 인정하는데 setInfo 판정에는 빠져 있어서, description 줄로 오면 운동 줄이
+      // 되어 lb 버튼이 붙고 그룹 헤더가 비었다.
+      setInfo = line
     } else if (!setInfo && /^amrap\s+\d/i.test(line)) {
       setInfo = line
     } else if (!setInfo && /^accumulate\s+/i.test(line)) {
