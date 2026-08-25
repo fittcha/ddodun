@@ -3,8 +3,10 @@ import { signSession } from '@/lib/server/session'
 import { hashPin, checkPin } from '@/lib/server/pin'
 import { SESSION_COOKIE, toResponse } from '@/lib/server/auth'
 
-const THIRTY_DAYS = 60 * 60 * 24 * 30
-const ONE_DAY = 60 * 60 * 24
+// 개인 훈련 기록 앱이고 기기도 본인 것이라, 자주 튕기는 편이 보안 이득보다 손해가 크다.
+// 자동 로그인은 90일, 미체크는 7일. 예전엔 1일이라 매일 로그아웃되어 "갑자기 튕겼다"가 반복됐다.
+const AUTO_LOGIN_MAX_AGE = 60 * 60 * 24 * 90
+const SESSION_MAX_AGE = 60 * 60 * 24 * 7
 const MAX_FAILED_ATTEMPTS = 5
 const LOCK_DURATION_MS = 15 * 60 * 1000
 
@@ -83,7 +85,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const maxAge = autoLogin === true ? THIRTY_DAYS : ONE_DAY
+    const maxAge = autoLogin === true ? AUTO_LOGIN_MAX_AGE : SESSION_MAX_AGE
     const secret = process.env.SESSION_SECRET
     if (!secret) throw new Error('SESSION_SECRET 이 설정되지 않았습니다')
 

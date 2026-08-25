@@ -5,6 +5,7 @@ import Header from '@/components/Header'
 import BottomNav from '@/components/BottomNav'
 import AuthGuard from '@/components/auth/AuthGuard'
 import ThemeInitializer from '@/components/ThemeInitializer'
+import StaleBuildReloader from '@/components/StaleBuildReloader'
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -12,6 +13,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   return (
     <AuthGuard>
+      <StaleBuildReloader />
       <ThemeInitializer />
       {!isLogin && <Header />}
       <main className={isLogin ? '' : 'max-w-lg mx-auto px-4 pt-3 pb-20'}>

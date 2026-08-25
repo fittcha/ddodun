@@ -12,7 +12,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [step, setStep] = useState<Step>('username')
   const [username, setUsername] = useState('')
-  const [autoLogin, setAutoLogin] = useState(false)
+  const [autoLogin, setAutoLogin] = useState(true)
   const [usernameError, setUsernameError] = useState('')
   const [loading, setLoading] = useState(false)
   const [pinError, setPinError] = useState(false)
