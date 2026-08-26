@@ -1,4 +1,10 @@
 -- 8월 4주차 4/5 (08.24~08.28) 운동 템플릿
+--
+-- [2026-08-26 운영 변경] 선수가 목요일 EMOM 을 수요일에 당겨서 수행하여,
+-- DB 에서 WED(08-26) 과 THU(08-27) 의 템플릿을 서로 맞바꿨다 (이번 주 한정).
+-- 아래 SQL 은 코치 이미지를 그대로 옮긴 원본이므로 수정하지 않는다.
+-- 다시 실행하면 이미지 기준 순서로 돌아간다는 점에 유의할 것.
+-- 교체는 date/day_of_week 만 변경했고 행 id 는 유지했다 (당시 로그·요약 0건).
 -- MON 2026-08-24
 INSERT INTO ddodun.workout_templates (date, day_of_week, section, workout_type, title, description, sort_order) VALUES
 ('2026-08-24', 'MON', 'A', 'weightlifting', NULL, E'Every 2:30 x 4\n3 Front Squat @ 70%\n* w/ 4''s lowering / eccentric every rep', 1),
