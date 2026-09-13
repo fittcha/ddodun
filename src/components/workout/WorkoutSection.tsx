@@ -73,6 +73,11 @@ function parseDescription(desc: string | null): {
       setInfo = line
     } else if (!setInfo && /^accumulate\s+/i.test(line)) {
       setInfo = line
+    } else if (!setInfo && /^build\s+(up|to)\b/i.test(line)) {
+      // 'Build up @ ~ 90%' / 'Build to a tough 5 @ RPE 8' 같은 로드 지시.
+      // 동작이 아니라 그 섹션을 어떻게 수행할지에 대한 지시라 헤더로 올린다.
+      // '* Build to ...' 처럼 * 가 붙은 줄은 여기 오기 전에 노트로 잡힌다.
+      setInfo = line
     } else if (!setInfo && /^for\s+time/i.test(line)) {
       setInfo = line
     } else if (!setInfo && dashRepCount === 1 && dashRepPattern.test(line)) {

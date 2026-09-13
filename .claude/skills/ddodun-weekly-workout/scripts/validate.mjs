@@ -33,6 +33,7 @@ function parseDescription(desc) {
     else if (!setInfo && /^e\d+mom\b/i.test(line)) setInfo = line
     else if (!setInfo && /^amrap\s+\d/i.test(line)) setInfo = line
     else if (!setInfo && /^accumulate\s+/i.test(line)) setInfo = line
+    else if (!setInfo && /^build\s+(up|to)\b/i.test(line)) setInfo = line
     else if (!setInfo && /^for\s+time/i.test(line)) setInfo = line
     else if (!setInfo && dashRepCount === 1 && dashRepPattern.test(line)) setInfo = line
     else if (!setInfo && /^\d+(-\d+)+\s+minutes?\s/i.test(line)) setInfo = line
