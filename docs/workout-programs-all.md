@@ -1,7 +1,7 @@
 # DDODUN 주차별 운동 프로그램 전체
 
-생성: `node scripts/export-programs.mjs` · 총 27주 / 893개 항목
-기간: 2026-03-16 ~ 2026-09-18
+생성: `node scripts/export-programs.mjs` · 총 28주 / 918개 항목
+기간: 2026-03-16 ~ 2026-09-23
 
 DB 기준으로 뽑았다. 주차 SQL 파일이 아니라 DB 를 읽으므로, 운영 중 바뀐 내용까지
 반영된 "선수가 실제로 본 프로그램"이다. 개인 추가운동은 맨 끝에 따로 정리했다.
@@ -35,6 +35,7 @@ DB 기준으로 뽑았다. 주차 SQL 파일이 아니라 DB 를 읽으므로, �
 - [2026-08-31 주간 (08.31~09.04)](#20260831) — 31개 항목
 - [2026-09-07 주간 (09.07~09.11)](#20260907) — 41개 항목
 - [2026-09-14 주간 (09.14~09.18)](#20260914) — 37개 항목
+- [2026-09-21 주간 (09.21~09.23)](#20260921) — 25개 항목
 
 ---
 
@@ -8416,6 +8417,234 @@ Rest 1:00 b/w sets
 For time of : 10-9-8-7-6-5-4-3-2-1
 Hand-Release Push ups
 * 30 Double Unders b/w rounds
+```
+
+---
+
+<a id="20260921"></a>
+## 2026-09-21 주간 (09.21~09.23)
+
+3일 / 25개 항목
+
+### 월 2026-09-21
+
+**A.** _(strength)_
+
+```
+Back Squat
+Build to a 10RM
+```
+
+**B.** _(weightlifting)_
+
+```
+3 Sets
+Power Clean + Squat Clean From Below Knee
++ Split Jerk 2's Pause in Receiving @ ~ 50%
+* Rest 1:00 b/w sets
+
+2 Sets
+Squat Clean + Split Jerk + Squat Clean + Split Jerk @ 70%
+* Rest 1:30 b/w sets
+
+2 Sets
+Squat Clean + Split Jerk @ 75/80%
+* Rest 1:30 b/w sets
+```
+
+**C.** _(metcon)_
+
+```
+5 Sets
+12 Cal Row
+9 Power Clean
+6 Thruster @ 85lb
+* Rest 1:00 b/w sets
+```
+
+**D.** _(accessory)_
+
+```
+3 Sets
+5 Zercher Good morning @ 3111 Tempo
+Rest 1:00
+0:45 Tall Kneeling KB(2) Front Rack Hold
+Rest 2:00
+```
+
+**E.** _(cardio)_
+
+```
+3 Sets
+(AMRAP 6)
+Assault Bike
+0:15 @ Sprint
+0:45 @ Recovery
+* Rest 3:00 b/w Sets
+```
+
+**F.** _(accessory)_
+
+```
+20-15-10-5
+Side Plank Knee Touch (Per Side)
+GHD Back Extensions
+* For Quality
+```
+
+### 화 2026-09-22
+
+**A.** _(strength)_
+
+```
+4 Sets
+6 DB Bench Press 35lb
+6 DB Deadlift 35lb
+6 DB Bench Press 35lb
+6 DB Power Clean 35lb
+Rest 1:00 b/w sets
+```
+
+**B.** _(skill)_
+
+```
+3 Sets (Quality)
+1:00 Assault Bike (Only Arm)
+10~15 Unbroken Deficit Push ups
+1:00 Assault Bike (Only Arm)
+10~15 Unbroken Feet Elevated Ring Row
+* Rest as needed b/w sets
+```
+
+**C.** _(accessory)_
+
+```
+3 Sets
+10 Chest Supported DB Row
+Rest 0:30
+Max reps Reverse Grip Barbell Row (Cap @ 20 reps)
+Rest 2:00
+```
+
+**D.** _(skill)_
+
+```
+Accumulate 50m (For Quality)
+Handstand Walk
+
+* and then,
+3 Sets
+1:00 Ring Plank Hold
+* Every 15's, 2 Ring Push up w/ a Pause at bottom
+```
+
+**E.** _(metcon)_
+
+```
+AMRAP 20
+("Test")
+Max Unbroken Pull ups
+800m Row
+Max Unbroken Toes to bar
+1,600m Bike-erg
+```
+
+**F.** _(accessory)_
+
+```
+3 Sets
+25 Band Pull Apart (Palms up)
+25 Band Pull Apart (Palms Down)
+25 Banded Tricep Extension
+25 Banded Bicep Curls
+* Rest as needed b/w sets
+```
+
+**G.** _(accessory)_
+
+```
+2 Sets (Quality)
+12 Wide Stance Band Rotations @ 20X2 Tempo (Left)
+12 Wide Stance Band Rotations @ 20X2 Tempo (Right)
+Rest 0:30
+12 Band Resisted Side Plank Row @ 20X2 Tempo (Left)
+12 Band Resisted Side Plank Row @ 20X2 Tempo (Right)
+Rest 1:00
+```
+
+### 수 2026-09-23
+
+**A.** _(metcon)_
+
+```
+EMOM 40
+```
+
+**B.** _(strength)_
+
+```
+Back Squat
+2 x 3 @ 65%
+* Rest 2:00 b/w sets
+
+* and then,
+Tempo Front Squat
+2 x 3 @ 60%
+* Rest 2:00 b/w sets
+```
+
+**C.** _(weightlifting)_
+
+```
+E3MOM x 5
+6 Overhead Squat
+* w/ 2's Pause in the bottom
+* Climbing
+```
+
+**D.** _(weightlifting)_
+
+```
+3 Sets
+Snatch Deadlift + Snatch Pull
++ Power Snatch + Snatch Balance @ ~ 60%
+* Rest 1:00 b/w sets
+
+* and then,
+Squat Snatch
+3 x 2 @ 70%
+2 x 1 @ 75%
+* Rest 1:30 b/w sets
+```
+
+**E.** _(accessory)_
+
+```
+2 Sets
+10 Moving Bent Knee Copenhagen Plank (Per Side) @ 2112 Tempo
+* Rest 0:30 b/w sides
+* Rest 2:00 b/w Movement
+15 Banded Clam Shell (Per Side) @ 21120 Tempo
+* Rest 0:30 b/w sides
+* Rest 2:00 b/w Movement
+```
+
+**F.** _(accessory)_
+
+```
+3 Sets
+10 Glute Ham Raises
+20 Tib Raises
+20 Calf Raises
+1:00 Wall Sit Hold
+* Rest as needed b/w sets
+```
+
+**G.** _(accessory)_
+
+```
+E2MOM x 4
+0:45 Hollow Rock Hold
 ```
 
 ---
