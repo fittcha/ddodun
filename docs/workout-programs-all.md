@@ -1,7 +1,7 @@
 # DDODUN 주차별 운동 프로그램 전체
 
-생성: `node scripts/export-programs.mjs` · 총 29주 / 955개 항목
-기간: 2026-03-16 ~ 2026-10-02
+생성: `node scripts/export-programs.mjs` · 총 30주 / 991개 항목
+기간: 2026-03-16 ~ 2026-10-09
 
 DB 기준으로 뽑았다. 주차 SQL 파일이 아니라 DB 를 읽으므로, 운영 중 바뀐 내용까지
 반영된 "선수가 실제로 본 프로그램"이다. 개인 추가운동은 맨 끝에 따로 정리했다.
@@ -37,6 +37,7 @@ DB 기준으로 뽑았다. 주차 SQL 파일이 아니라 DB 를 읽으므로, �
 - [2026-09-14 주간 (09.14~09.18)](#20260914) — 37개 항목
 - [2026-09-21 주간 (09.21~09.23)](#20260921) — 25개 항목
 - [2026-09-28 주간 (09.28~10.02)](#20260928) — 37개 항목
+- [2026-10-05 주간 (10.05~10.09)](#20261005) — 36개 항목
 
 ---
 
@@ -8984,6 +8985,333 @@ Rest 1:00 b/w sets
 5 Sets
 20 GHD Sit ups
 20m (10m x 2) Husafell Bear Hug Carry @ 100lb
+* Rest 2:00 b/w sets
+```
+
+---
+
+<a id="20261005"></a>
+## 2026-10-05 주간 (10.05~10.09)
+
+5일 / 36개 항목
+
+### 월 2026-10-05
+
+**A.** _(strength)_
+
+```
+Back Squat
+Build to a 6RM for the day
+```
+
+**B.** _(weightlifting)_
+
+```
+3 Sets
+1 Power Clean + 2 SC from Below Knee
++ 1 Split Jerk @ 50~55%
+* Rest 1:00 b/w sets
+
+* and then,
+4 Sets
+1 Squat Clean + 1 Split Jerk @ 85 / 95%
+* Rest 2:00 b/w sets
+
+* and then,
+3 Sets
+15 Front Squat @ 45%
+* Rest 2:00 b/w sets
+```
+
+**C.** _(metcon)_
+
+```
+5 Sets
+0:45 Assault Bike @ RPE 8
+Rest 0:15
+AMRAP 0:30, Max Squat Clean to Thruster 105lb
+* Rest 1:30 b/w sets
+```
+
+**D.** _(accessory)_
+
+```
+4 Sets
+4 Zercher Goodmorning @ 3111 Tempo / RPE 9
+Rest 1:00
+5 Barbell Roll outs @ 3131 Tempo
+Rest 2:00
+```
+
+**E.** _(cardio)_
+
+```
+3 Sets ( Assault Bike )
+(6:00 On / 3:00 Off)
+0:10 Sprint
+0:50 Float
+```
+
+**F.** _(accessory)_
+
+```
+3 Sets
+15/15 Side Plank Hip Touch
+0:30 Full Plank Shoulder Taps
+20 Alter Toe Touches
+10 Rounded GHD Back Extension
+* Rest as needed b/w Sets
+```
+
+### 화 2026-10-06
+
+**A.** _(strength)_
+
+```
+4 Sets
+15 DB Bench Press
+15 DB Deadlift
+15 Chest to bar
+* Rest 2:00 b/w sets
+* DB 25/30/35/40lb
+```
+
+**B.** _(accessory)_
+
+```
+3 Sets (For Quality)
+0:30 Band Tricep Extensions
+0:30 Hand-Release Push ups
+0:30 Empty Bar Bicep Curls
+0:30 Ring Row
+Rest 1:00
+```
+
+**C.** _(accessory)_
+
+```
+4 Sets
+10/10 SA Incline DB Bench Press
+10/10 KB Gorilla Row @ RPE 8
+* Rest 2:00 b/w sets
+```
+
+**D.** _(accessory)_
+
+```
+3 Sets
+20 Banded Tricep Pushdown @ RPE 8
+10 Elbow Supported EZ Bar Curl @ RPE 8
+* Rest 2:00 b/w sets
+```
+
+**E.** _(skill)_
+
+```
+AMRAP 20 ( Quality )
+10m (5m x 2) Handstand Walk
+400m Ski-erg
+0:20 Hanging L-Sit Hold
+400m Row
+```
+
+**F.** _(accessory)_
+
+```
+3 Sets
+20 Alter Tall Kneeling Landmine Rotations
+15 Hollow Rock
+0:30 Plank Push ups
+* Rest as needed b/w sets
+```
+
+### 수 2026-10-07
+
+**A.** _(strength)_
+
+```
+Deadlift
+3 x 1 @ 85~95%
+* Rest 3:00 b/w sets
+
+* and then,
+EMOM 8
+Single Deadlift @ 75%
+```
+
+**B.** _(weightlifting)_
+
+```
+AMRAP 15
+Overhead Squat
+* with a 2 seconds pause in the bottom of Each Rep
+* Build to a 3RM for the Day
+```
+
+**C.** _(weightlifting)_
+
+```
+3 Sets
+Snatch Deadlift + Snatch Pull
++ Power Snatch + Snatch Balance @ 40~60%
+* Rest 1:00 b/w sets
+
+* and then,
+4 Sets
+1 Squat Snatch @ 85~95%
+* Rest 2:00 b/w sets
+```
+
+**D.** _(metcon)_
+
+```
+3 Rounds for time of :
+5 Wall Walks
+15 Bar Facing Burpees
+9-7-5 Squat Snatch 95lb
+```
+
+**E.** _(accessory)_
+
+```
+3 Sets (Quality)
+8/8 Moving Bent Knee Copenhagen Plank @ 2112 Tempo
+Rest as needed
+12/12 Banded Clam Shell @ 2112 Tempo
+Rest as needed
+```
+
+**F.** _(cardio)_
+
+```
+AMRAP 6:00
+Run 300m
+30 Cal Bike-erg
+Max Ski-erg
+
+Rest 2:00
+AMRAP 6:00
+30 Cal Bike-erg
+30 Cal Ski-erg
+Max Meter Run
+
+Rest 2:00
+AMRAP 6:00
+30 Cal Ski-erg
+Run 300m
+Max Cal Bike-erg
+```
+
+### 목 2026-10-08
+
+**A.** _(metcon)_
+
+```
+EMOM 40
+```
+
+**B.** _(accessory)_
+
+```
+Glute Ham Raise
+3 x 12 @ RPE 9
+* Rest 2:00 b/w sets
+```
+
+**C.** _(metcon)_
+
+```
+E6MOM x 3
+15 Cal Bike-erg
+20 DB(1) Goblet Squat 25lb
+15 Wallball 14lb
+100ft Walking Lunges
+```
+
+**D.** _(metcon)_
+
+```
+5 Sets
+10 Shoulder Press 55lb
+10 Push ups
+8 Strict Pull ups
+* Rest no more than 2:00
+```
+
+**E.** _(accessory)_
+
+```
+4 Sets
+10 DB Incline Row @ 21X0 Tempo
+Rest 1:00
+12 DB Reverse Fly @ 10X0 Tempo
+Rest 2:00
+```
+
+**F.** _(accessory)_
+
+```
+3 Sets
+10 Barbell Bicep Curls @ 2111 Tempo
+10 Barbell Skull Crushers @ 2111 Tempo
+* Rest 2:00 b/w sets
+```
+
+### 금 2026-10-09
+
+**A.** _(weightlifting)_
+
+```
+Shoulder Press
+2 x 3 @ 70 / 80%
+1 x Max @ 90%
+3 x 5 @ 65%
+* Rest 2:00 b/w sets
+```
+
+**B.** _(skill)_
+
+```
+Every 1:30 x 10
+3 Wall Walks
+5 Bar Muscle ups
+7 Cal Bike-erg
+```
+
+**C.** _(accessory)_
+
+```
+4 Sets (Superset)
+12 DB Chest Fly
+12 Cable Tricep Pushdown
+Rest 1:30 b/w sets
+```
+
+**D.** _(accessory)_
+
+```
+4 Sets (Superset)
+15 Rear Delt Fly
+15 Plate Lateral Raises
+Rest 2:00 b/w sets
+```
+
+**E.** _(accessory)_
+
+```
+3 Sets (Superset)
+15 Barbell Curls
+15 Diamond Push ups
+Rest 1:00 b/w sets
+```
+
+**F.** _(accessory)_
+
+```
+3 Sets
+20 GHD Sit ups
+20 V ups
+20 Russian Twist
 * Rest 2:00 b/w sets
 ```
 
