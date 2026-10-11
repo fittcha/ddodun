@@ -62,7 +62,7 @@ const hasLeadingRest = p => p.orderedLines.length > 0 && p.orderedLines[0].type 
 
 // ---------- extract VALUES tuples ----------
 const sql = readFileSync(file, 'utf8')
-const rowRe = /\('(\d{4}-\d\d-\d\d)',\s*'(\w+)',\s*'(\w)',\s*'(\w+)',\s*(NULL|'(?:[^']|'')*'),\s*(NULL|E'(?:[^']|'')*'),\s*(\d+)\)/g
+const rowRe = /\('(\d{4}-\d\d-\d\d)',\s*'(\w+)',\s*'(\w+)',\s*'(\w+)',\s*(NULL|'(?:[^']|'')*'),\s*(NULL|E'(?:[^']|'')*'),\s*(\d+)\)/g
 const decode = s => s === 'NULL' ? null
   : s.replace(/^E?'/, '').replace(/'$/, '').replace(/''/g, "'").replace(/\\n/g, '\n')
 
@@ -100,10 +100,16 @@ for (const r of rows) (byDay[r.day] ||= []).push(r)
 for (const day of Object.keys(byDay)) {
   const drows = byDay[day]
   console.log(`\n===== ${day} (${drows[0].date}) — ${drows.length} rows =====`)
+  // 하루가 두 세션으로 나뉘면 S1/S2 구분선 행이 경계가 되고, 세션마다 A.. 또는 1.. 로 다시 센다.
   const letters = [...new Set(drows.map(r => r.section))]
-  const expected = letters.map((_, i) => String.fromCharCode(65 + i))
-  if (letters.join('') !== expected.join(''))
-    flag(`${day}: section letters not sequential: got ${letters.join('')}, expected ${expected.join('')}`)
+  const runs = [[]]
+  for (const s of letters) /^S\d+$/.test(s) ? runs.push([]) : runs.at(-1).push(s)
+  for (const run of runs.filter(r => r.length)) {
+    const alpha = run.map((_, i) => String.fromCharCode(65 + i)).join('')
+    const num = run.map((_, i) => String(i + 1)).join('')
+    if (run.join('') !== alpha && run.join('') !== num)
+      flag(`${day}: section 순서 불연속: got ${run.join('')}, expected ${alpha} or ${num}`)
+  }
   const sorts = drows.map(r => r.sort)
   if (sorts.join(',') !== sorts.map((_, i) => i + 1).join(','))
     flag(`${day}: sort_order not 1..N: ${sorts.join(',')}`)

@@ -39,7 +39,7 @@ const KEY = env.match(/SUPABASE_SERVICE_ROLE_KEY=(.+)/)[1].trim()
 const H = { apikey: KEY, Authorization: `Bearer ${KEY}` }
 
 const sql = readFileSync(file, 'utf8')
-const rowRe = /\('(\d{4}-\d\d-\d\d)',\s*'(\w+)',\s*'(\w)',\s*'(\w+)',\s*(NULL|'(?:[^']|'')*'),\s*(NULL|E'(?:[^']|'')*'),\s*(\d+)\)/g
+const rowRe = /\('(\d{4}-\d\d-\d\d)',\s*'(\w+)',\s*'(\w+)',\s*'(\w+)',\s*(NULL|'(?:[^']|'')*'),\s*(NULL|E'(?:[^']|'')*'),\s*(\d+)\)/g
 const decode = s => s === 'NULL' ? null
   : s.replace(/^E?'/, '').replace(/'$/, '').replace(/''/g, "'").replace(/\\n/g, '\n')
 
