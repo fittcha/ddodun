@@ -329,9 +329,25 @@ function WorkoutContent() {
             return (
               <div key={section} className="px-5 py-1">
                 {sectionTemplates.map(t => (
-                  <p key={t.id} className="text-[11px] text-text-secondary/60 whitespace-pre-line leading-relaxed">
-                    {t.description}
-                  </p>
+                  // title 이 있는 note 행은 구분선 달린 소제목이다 (예: 하루 두 세션의 "Session 2").
+                  // title 없이 description 만 있으면 기존의 흐린 안내 문구 그대로.
+                  t.title ? (
+                    <div key={t.id} className="pt-3 pb-1">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-bold text-text-secondary shrink-0">{t.title}</span>
+                        <span className="h-px flex-1 bg-border" />
+                      </div>
+                      {t.description && (
+                        <p className="text-[11px] text-text-secondary/60 whitespace-pre-line leading-relaxed mt-0.5">
+                          {t.description}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p key={t.id} className="text-[11px] text-text-secondary/60 whitespace-pre-line leading-relaxed">
+                      {t.description}
+                    </p>
+                  )
                 ))}
               </div>
             )

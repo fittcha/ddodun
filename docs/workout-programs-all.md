@@ -1,7 +1,7 @@
 # DDODUN 주차별 운동 프로그램 전체
 
-생성: `node scripts/export-programs.mjs` · 총 30주 / 991개 항목
-기간: 2026-03-16 ~ 2026-10-09
+생성: `node scripts/export-programs.mjs` · 총 31주 / 1041개 항목
+기간: 2026-03-16 ~ 2026-10-16
 
 DB 기준으로 뽑았다. 주차 SQL 파일이 아니라 DB 를 읽으므로, 운영 중 바뀐 내용까지
 반영된 "선수가 실제로 본 프로그램"이다. 개인 추가운동은 맨 끝에 따로 정리했다.
@@ -38,6 +38,7 @@ DB 기준으로 뽑았다. 주차 SQL 파일이 아니라 DB 를 읽으므로, �
 - [2026-09-21 주간 (09.21~09.23)](#20260921) — 25개 항목
 - [2026-09-28 주간 (09.28~10.02)](#20260928) — 37개 항목
 - [2026-10-05 주간 (10.05~10.09)](#20261005) — 36개 항목
+- [2026-10-12 주간 (10.12~10.16)](#20261012) — 50개 항목
 
 ---
 
@@ -9313,6 +9314,488 @@ Rest 1:00 b/w sets
 20 V ups
 20 Russian Twist
 * Rest 2:00 b/w sets
+```
+
+---
+
+<a id="20261012"></a>
+## 2026-10-12 주간 (10.12~10.16)
+
+5일 / 50개 항목
+
+### 월 2026-10-12
+
+**1.** _(skill)_
+
+```
+3 Sets
+2 Small Ring Swings
+1 Big Ring Swings w/ Open hip
+* Rest as needed
+```
+
+**2.** _(skill)_
+
+```
+3 Sets
+1 Big Ring Swings w/ Open hip & Pull
+* Rest as needed
+```
+
+**3.** _(skill)_
+
+```
+3 Sets
+1 Jumping Muscle up (Transition)
+1 Jumping Muscle up (Full) & 15's Ring Support Hold
+* Rest as needed
+```
+
+**4.** _(skill)_
+
+```
+3 Sets
+20's Ribcage Hold
+10's Ring Bottom Hold
+* Rest as needed
+```
+
+**5.** _(skill)_
+
+```
+5 Sets
+10 Bar Facing Burpees @ Easy
+Rest 20's
+AMRAP 2, Max Ring Muscle up (2~4)
+Rest 2:00 b/w sets
+```
+
+**A.** _(weightlifting)_
+
+```
+6 Sets
+1.1.1 Squat Snatch
+* Set 1/4 - 74/78/82%
+* Set 2/5 - 76/80/84%
+* Set 3/6 - 78/82/86%
+* Rest 3:00 b/w sets
+* Rest / add load for 20's b/w each reps
+```
+
+**B.** _(strength)_
+
+```
+Back Squat
+10 x 3 reps @ 77~81%
+* Rest 90's b/w sets
+```
+
+**C.** _(skill)_
+
+```
+E2MOM x 10
+(1:30 On / 0:30 off)
+5m Handstand Walk
+10m SA DB OH Walking Lunges 35lb
+* (5m x 2 / Right > Left)
+Max Strict (AB)HSPU until 90's Mark
+```
+
+**S1.** _(note)_
+
+```
+Session 1
+```
+
+**S2.** _(note)_
+
+```
+Session 2
+Skill — Ring Muscle up
+```
+
+### 화 2026-10-13
+
+**1.** _(skill)_
+
+```
+3 Sets
+10's/10's Sideways Handstand Hold on wall
+* Rest as needed
+```
+
+**2.** _(skill)_
+
+```
+3 Sets
+10 Alter Shoulder taps on Wall
+* "Shift - Lift - Tap"
+* Rest as needed
+```
+
+**3.** _(skill)_
+
+```
+5 Sets
+50 Unbroken Double Unders
+Rest 20's
+AMRAP 1, Max Handstand Walk (7.5~10m)
+Rest 2:00 b/w sets
+```
+
+**4.** _(accessory)_
+
+```
+3 Sets
+12/12 Landmine Meadows Row
+Rest 45's
+16 Alter Archer Ring Row
+Rest 60's
+12 Seated Banded Face Pull to Press
+Rest 90's
+```
+
+**A.** _(skill)_
+
+```
+E2MOM x 5
+1 Legless Rope Climb
+2 Rope Climb
+```
+
+**B.** _(accessory)_
+
+```
+3 Sets
+16 Alter Single Leg Toes to bar
+Rest 30's
+16 Alter Toe Touches
+Rest 30's
+10 Bent Over Straight Arm Banded PVC Pulldowns
+* with Heavy Band resistance
+Rest 90's
+```
+
+**C.** _(cardio)_
+
+```
+2 Sets
+1:30 Assault Bike @ Moderate
+1:00 Assault Bike @ Recovery
+1:00 Assault Bike @ Hard
+1:00 Assault Bike @ Recovery
+Rest 1:00
+1:30 Row @ Moderate
+1:00 Row @ Recovery
+1:00 Row @ Hard
+1:00 Row @ Recovery
+Rest 1:00
+1:30 Ski-erg @ Moderate
+1:00 Ski-erg @ Recovery
+1:00 Ski-erg @ Hard
+1:00 Ski-erg @ Recovery
+Rest 4:00
+```
+
+**S1.** _(note)_
+
+```
+Session 1
+```
+
+**S2.** _(note)_
+
+```
+Session 2
+Skill — Handstand Walk
+```
+
+### 수 2026-10-14
+
+**1.** _(accessory)_
+
+```
+2 Sets
+30's Bent Arm KB Lat Stretch
+* Rest 60's
+```
+
+**2.** _(accessory)_
+
+```
+2 Sets
+10/10 Banded Arm Spirals
+* Light Tension on the band
+* Rest 60's
+```
+
+**3.** _(accessory)_
+
+```
+2 Sets
+5/5 Quadruped Scap Push up @ 2020
+* Rest 60's
+```
+
+**4.** _(accessory)_
+
+```
+2 Sets
+20's Each Side Lying Shoulder IR Hold
+Rest 30's
+8/8 DB Horizontal External Rotation off bench
+Rest 90's
+```
+
+**5.** _(accessory)_
+
+```
+2 Sets
+30's Shoulder Extension Stretch
+* Rest 60's
+```
+
+**A.** _(weightlifting)_
+
+```
+2 Sets
+3 Squat Clean @ 86%
+Rest 30's
+12 Squat Clean @ 50%
+Rest 5:00
+```
+
+**B.** _(strength)_
+
+```
+4 Sets
+12 DB Romanian Deadlift @ 31X1 Tempo
+Rest 1:00
+12 Barbell Cyclist Squat @ 31X1 Tempo
+Rest 1:00
+```
+
+**C.** _(metcon)_
+
+```
+10 Rounds for time of :
+7 Power Snatch 55lb
+3 Bar Muscle ups
+```
+
+**D.** _(metcon)_
+
+```
+Rest 10:00
+5 Sets
+Run 200m
+10 Burpee Chest to bar
+50 Double Unders
+15 GHD Sit ups
+* Rest 1:1 b/w sets
+```
+
+**S1.** _(note)_
+
+```
+Session 1
+```
+
+**S2.** _(note)_
+
+```
+Session 2
+REST DAY · Mobility
+```
+
+### 목 2026-10-15
+
+**1.** _(metcon)_
+
+```
+2 Sets
+15-10-5 DB(2) Thruster 35lb
+2-4-6 Rope Climbs
+and then, Max Cal Bike-erg Until 10:00
+* Rest 5:00 b/w sets
+```
+
+**2.** _(accessory)_
+
+```
+3 Sets
+10 DB Skull Crusher
+Rest 45's
+10 DB Arnold Press
+Rest 45's
+10 Bench Dips
+Rest 45's
+5 Sets "6 Way DB Delt Raises"
+Rest 2:00
+```
+
+**3.** _(accessory)_
+
+```
+* Mobility
+2 Sets
+5/5 Lunges to Hamstring Stretch w/ 5's Hold
+Rest 60's
+40's Extended Leg Couch Stretch (Per Side)
+Rest 60's
+8 Tempo Deficit RDL @ 30X1
+Rest 60's
+30's Straddle Sit Stretch (Per Side)
+Rest 60's
+```
+
+**A.** _(metcon)_
+
+```
+EMOM 40
+```
+
+**B.** _(weightlifting)_
+
+```
+E2MOM x 5
+2 Paused Jerk Dip Squat
+1 Split Jerk (Pause in catch)
+* Load : 65~75%
+```
+
+**C.** _(strength)_
+
+```
+5 Sets
+3 Bench Press @ 85%
+Rest 90's
+6 Front Squat @ 60%
+Rest 90's
+```
+
+**D.** _(accessory)_
+
+```
+3 Sets
+10 Band Pull Aparts w/ Palms Down
+Rest as needed
+10 Band Pull Aparts w/ Palms Up
+Rest as needed
+10 Diagonal Banded Pull Aparts
+* w/ Left Hand down & Right Hand up
+Rest as needed
+10 Diagonal Banded Pull Aparts
+* w/ Right Hand down & Left Hand up
+Rest as needed
+```
+
+**S1.** _(note)_
+
+```
+Session 1
+```
+
+**S2.** _(note)_
+
+```
+Session 2
+```
+
+### 금 2026-10-16
+
+**1.** _(skill)_
+
+```
+EMOM 10
+6~12's Negative HSPU
+```
+
+**2.** _(accessory)_
+
+```
+3 Sets
+8 DB(2) Z Press
+20's DB(2) Overhead Hold in Z press
+* Legs extended and in front of you
+* as heavy as you can
+```
+
+**3.** _(skill)_
+
+```
+3 Sets
+Max Unbroken Pike Push ups
+* w/ feet on ground / No more than 20 reps,
+* Rest 3:00 b/w sets
+```
+
+**4.** _(skill)_
+
+```
+AMRAP 2
+Max Strict (AB) HSPU
+Rest 1:00
+60's Handstand Hold on wall
+Rest 1:00
+AMRAP 2, Max Kipping Handstand Push ups
+```
+
+**A.** _(strength)_
+
+```
+3 Sets
+3 Hand-release Deadlift @ 80~84%
+* Rest 3:00 b/w sets
+```
+
+**B.** _(strength)_
+
+```
+4 Sets
+12 TnG Deadlift @ 135~155lb
+* Rest No More than 2:00
+```
+
+**C.** _(accessory)_
+
+```
+3 Sets
+14 Bent Over Barbell Row
+Rest 1:00
+12 Barbell Bicep Curls
+Rest 2:00
+```
+
+**D.** _(accessory)_
+
+```
+3 Sets
+7.5m x 2 SA Barbell Farmers Carry @ 35lb
+* Rest 20's b/w arms
+* Rest 2:00 b/w sets
+```
+
+**E.** _(cardio)_
+
+```
+5 Continuous Sets (30:00)
+3:00 Run @ RPE 5~6
+2:00 Run @ RPE 6~7
+1:00 Run @ RPE 7~8
+```
+
+**S1.** _(note)_
+
+```
+Session 1
+```
+
+**S2.** _(note)_
+
+```
+Session 2
+Skill — Strict HSPU
 ```
 
 ---
