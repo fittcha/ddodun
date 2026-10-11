@@ -124,7 +124,9 @@ export function generateSummaryText(templates: WorkoutTemplate[], logs: WorkoutL
   for (const l of logs) if (l.template_id && l.completed) logMap.set(l.template_id, l)
   const completed = templates
     .filter(t => logMap.has(t.id))
-    .sort((a, b) => a.section.localeCompare(b.section) || a.sort_order - b.sort_order)
+    // 섹션 문자열이 아니라 sort_order 가 그날의 순서다 (Session 2 의 '1','2' 와
+    // 'S1','S2' 구분선이 알파벳순에서 제자리를 못 찾는다).
+    .sort((a, b) => a.sort_order - b.sort_order)
   if (completed.length === 0) return ''
   const sections: { section: string; items: WorkoutTemplate[] }[] = []
   for (const t of completed) {

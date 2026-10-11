@@ -56,9 +56,9 @@ export async function resolveTemplates(athleteId: string, date: string): Promise
   const rows = (data ?? []).map(
     r => (r as unknown as { workout_templates: WorkoutTemplate }).workout_templates,
   )
-  rows.sort((a, b) =>
-    a.section === b.section ? a.sort_order - b.sort_order : a.section.localeCompare(b.section),
-  )
+  // 날짜 안에서의 순서는 sort_order 가 전부 쥐고 있다. 섹션 문자열로 정렬하면
+  // 'S1','S2' 구분선이나 Session 2 의 '1','2' 가 알파벳순에 끌려 엉뚱한 자리로 간다.
+  rows.sort((a, b) => a.sort_order - b.sort_order)
   return rows
 }
 
