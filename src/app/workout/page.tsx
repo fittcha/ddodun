@@ -338,7 +338,7 @@ function WorkoutContent() {
                         <span className="h-px flex-1 bg-border" />
                       </div>
                       {t.description && (
-                        <p className="text-[11px] text-text-secondary/60 whitespace-pre-line leading-relaxed mt-0.5">
+                        <p className="text-xs text-text-secondary/80 whitespace-pre-line leading-relaxed mt-1">
                           {t.description}
                         </p>
                       )}
