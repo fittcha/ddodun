@@ -78,3 +78,12 @@ body {
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
 }
+
+/* 패드·폴드처럼 넓은 화면에서는 UI 전체 배율을 키운다.
+   body 에 zoom 을 걸어야 rem 뿐 아니라 text-[10px] 같은 고정 픽셀, 아이콘,
+   바텀탭 높이, fixed bottom-[4rem] 계산기까지 같은 비율로 따라 커진다.
+   (max-w-lg 열만 늘리면 글씨는 그대로라 휑하고, 바텀탭과 간격이 어긋난다.)
+   미디어쿼리는 뷰포트 기준이라 zoom 에 영향받지 않는다 — 되먹임 없음. */
+@media (min-width: 640px)  { body { zoom: 1.15 } }
+@media (min-width: 840px)  { body { zoom: 1.35 } }
+@media (min-width: 1100px) { body { zoom: 1.6 } }
