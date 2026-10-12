@@ -5,6 +5,10 @@ export interface SessionPayload {
   username: string
   role: 'athlete' | 'coach'
   exp: number
+  /** 이 세션의 수명(초). 갱신할 때 같은 길이로 다시 발급한다. 옛 토큰엔 없다. */
+  ttl?: number
+  /** 자동 로그인으로 받은 세션인가 — 갱신 시 Max-Age 를 다시 줄지 결정한다. */
+  auto?: boolean
 }
 
 function sign(body: string, secret: string): string {
