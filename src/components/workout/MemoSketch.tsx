@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect, useCallback } from 'react'
-import { Undo2, Eraser, Trash2, PaintBucket } from 'lucide-react'
+import { Undo2, Redo2, Eraser, Trash2, PaintBucket, PenLine } from 'lucide-react'
 
 /**
  * 메모칸 손글씨. 애플펜슬/손가락으로 그리고, 획을 좌표 배열로 JSON 에 저장한다.
@@ -15,7 +15,7 @@ export type Stroke = { c: number; p: number[] } // c=색 인덱스, p=[x,y,x,y,�
 const PALETTE = ['--foreground', '--danger', '--success']
 const LINE_WIDTH = 2
 const MIN_STEP = 1.5 // px. 이보다 가까운 점은 버려서 JSON 을 줄인다.
-const ERASE_R = 10 // px. 이 안에 들어온 획을 통째로 지운다 (벡터라 픽셀 지우개가 필요 없다).
+const ERASE_R = 9 // px. 닿은 점만 걷어내고 남은 토막은 각자 획이 된다.
 const GUIDE_ALPHA = 0.06
 
 /**
@@ -75,8 +75,24 @@ export default function MemoSketch({
   const erasingRef = useRef(false)
   erasingRef.current = erasing
 
+  // 되돌리기는 '마지막 획 빼기'가 아니라 스냅샷 스택이다 — 부분 지우개가 생긴 뒤로는
+  // 지운 것도 한 턴이라 획 개수만 봐서는 되돌릴 수 없다. 세션 한정(저장 안 함).
+  const [hist, setHist] = useState<Stroke[][]>([normalize(value)])
+  const [hi, setHi] = useState(0)
+
   // 그리는 중에는 서버 응답이 되돌아와도 ref 를 덮지 않는다 (진행 중인 획이 날아간다).
   if (!drawingRef.current) strokesRef.current = normalize(value)
+
+  function commit(next: Stroke[]) {
+    setHist(h => [...h.slice(0, hi + 1), next])
+    setHi(hi + 1)
+    onChange(next)
+  }
+  function step(to: number) {
+    setHi(to)
+    strokesRef.current = hist[to]
+    onChange(hist[to])
+  }
 
   const redraw = useCallback(() => {
     const canvas = canvasRef.current
@@ -117,7 +133,7 @@ export default function MemoSketch({
     const ro = new ResizeObserver(redraw)
     ro.observe(canvas)
     return () => ro.disconnect()
-  }, [redraw, value])
+  }, [redraw, value, hi])
 
   /** 클라이언트 좌표 → 캔버스 CSS px. getBoundingClientRect 가 body zoom 까지 반영하므로 배율에 안전. */
   function toLocal(e: { clientX: number; clientY: number }): [number, number] {
@@ -126,16 +142,27 @@ export default function MemoSketch({
     return [(e.clientX - r.left) * scale, (e.clientY - r.top) * scale]
   }
 
-  /** 지우개: 커서 반경 안에 점이 하나라도 걸린 획을 통째로 뺀다. */
+  /** 지우개: 반경에 닿은 점만 걷어내고, 끊긴 양쪽 토막을 각자 획으로 남긴다. */
   function eraseAt([x, y]: [number, number]): boolean {
     const w = canvasRef.current!.clientWidth
-    const before = strokesRef.current.length
-    strokesRef.current = strokesRef.current.filter(s => {
-      for (let i = 0; i < s.p.length; i += 2)
-        if (Math.hypot(s.p[i] * w - x, s.p[i + 1] * w - y) < ERASE_R) return false
-      return true
-    })
-    return strokesRef.current.length !== before
+    const out: Stroke[] = []
+    let changed = false
+    for (const s of strokesRef.current) {
+      let run: number[] = []
+      let hit = false
+      for (let i = 0; i < s.p.length; i += 2) {
+        if (Math.hypot(s.p[i] * w - x, s.p[i + 1] * w - y) < ERASE_R) {
+          hit = true
+          if (run.length >= 4) out.push({ c: s.c, p: run }) // 점 하나만 남은 토막은 버린다
+          run = []
+        } else run.push(s.p[i], s.p[i + 1])
+      }
+      if (!hit) { out.push(s); continue }
+      changed = true
+      if (run.length >= 4) out.push({ c: s.c, p: run })
+    }
+    if (changed) strokesRef.current = out
+    return changed
   }
 
   function onPointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
@@ -174,27 +201,32 @@ export default function MemoSketch({
     const d = drawingRef.current
     if (!d || d.id !== e.pointerId) return
     drawingRef.current = null
-    if (d.dirty) onChange(strokesRef.current) // 획이 끝날 때만 저장 → 디바운스 1회
+    if (d.dirty) commit(strokesRef.current) // 획이 끝날 때만 저장 → 디바운스 1회
   }
 
-  const strokes = normalize(value)
-  const empty = strokes.length === 0
+  const empty = normalize(value).length === 0
   const btn = 'w-7 h-7 flex items-center justify-center rounded disabled:opacity-25'
 
   return (
     <div>
-      <div>
-        <canvas
-          ref={canvasRef}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
-          // touch-action:none 이 없으면 획 대신 페이지가 스크롤된다.
-          className="w-full aspect-[5/2] touch-none rounded border border-border bg-background text-foreground"
-        />
-      </div>
+      <canvas
+        ref={canvasRef}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        // touch-action:none 이 없으면 획 대신 페이지가 스크롤된다.
+        className="w-full aspect-[5/2] touch-none rounded border border-border bg-background text-foreground"
+      />
       <div className="mt-1 flex items-center gap-1">
+        <button
+          onClick={() => setErasing(v => !v)}
+          aria-label={erasing ? '지우개 — 눌러서 펜으로' : '펜 — 눌러서 지우개로'}
+          aria-pressed={erasing}
+          className={`${btn} ${erasing ? 'bg-highlight text-highlight-text' : 'text-text-secondary/70'}`}
+        >
+          {erasing ? <Eraser size={14} /> : <PenLine size={14} />}
+        </button>
         <div className="relative">
           {/* 칩은 평소 접어둔다 — 툴바에 늘 펼쳐두면 지우개/되돌리기와 섞여 무거워진다. */}
           {paletteOpen && (
@@ -221,29 +253,30 @@ export default function MemoSketch({
             aria-label="색상"
             aria-expanded={paletteOpen}
             className={btn}
-            style={{ color: erasing ? undefined : `var(${PALETTE[color]})` }}
+            style={{ color: `var(${PALETTE[color]})` }}
           >
-            <PaintBucket size={15} className={erasing ? 'text-text-secondary/40' : undefined} />
+            <PaintBucket size={15} />
           </button>
         </div>
-        <button
-          onClick={() => setErasing(v => !v)}
-          aria-label="지우개"
-          className={`${btn} ${erasing ? 'bg-highlight text-highlight-text' : 'text-text-secondary/60'}`}
-        >
-          <Eraser size={14} />
-        </button>
         <div className="flex-1" />
         <button
-          onClick={() => onChange(strokes.slice(0, -1))}
-          disabled={empty}
-          aria-label="한 획 되돌리기"
+          onClick={() => step(hi - 1)}
+          disabled={hi === 0}
+          aria-label="되돌리기"
           className={`${btn} text-text-secondary/60`}
         >
           <Undo2 size={14} />
         </button>
         <button
-          onClick={() => onChange([])}
+          onClick={() => step(hi + 1)}
+          disabled={hi >= hist.length - 1}
+          aria-label="다시 실행"
+          className={`${btn} text-text-secondary/60`}
+        >
+          <Redo2 size={14} />
+        </button>
+        <button
+          onClick={() => commit([])}
           disabled={empty}
           aria-label="전체 지우기"
           className={`${btn} text-text-secondary/60`}
