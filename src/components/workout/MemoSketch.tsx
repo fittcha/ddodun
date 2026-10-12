@@ -219,13 +219,22 @@ export default function MemoSketch({
         className="w-full aspect-[5/2] touch-none rounded border border-border bg-background text-foreground"
       />
       <div className="mt-1 flex items-center gap-1">
+        {/* 펜·지우개는 둘 다 늘 보이고, 고른 쪽만 진하다 (토글보다 지금 뭘 쥐었는지가 명확하다). */}
         <button
-          onClick={() => setErasing(v => !v)}
-          aria-label={erasing ? '지우개 — 눌러서 펜으로' : '펜 — 눌러서 지우개로'}
-          aria-pressed={erasing}
-          className={`${btn} ${erasing ? 'bg-highlight text-highlight-text' : 'text-text-secondary/70'}`}
+          onClick={() => setErasing(false)}
+          aria-label="펜"
+          aria-pressed={!erasing}
+          className={`${btn} ${erasing ? 'text-text-secondary/35' : 'text-foreground'}`}
         >
-          {erasing ? <Eraser size={14} /> : <PenLine size={14} />}
+          <PenLine size={15} />
+        </button>
+        <button
+          onClick={() => setErasing(true)}
+          aria-label="지우개"
+          aria-pressed={erasing}
+          className={`${btn} ${erasing ? 'text-foreground' : 'text-text-secondary/35'}`}
+        >
+          <Eraser size={15} />
         </button>
         <div className="relative">
           {/* 칩은 평소 접어둔다 — 툴바에 늘 펼쳐두면 지우개/되돌리기와 섞여 무거워진다. */}
