@@ -1167,7 +1167,7 @@ function WorkoutSectionInner({ section, templates, logs, date, onLogUpdate, disp
                       {gSketchOpen && (
                         <div className="mt-2">
                           <MemoSketch
-                            key={gAnchor}
+                            id={gAnchor}
                             value={gSketch}
                             onChange={strokes => handleSketchChangeFor(gAnchor, strokes)}
                           />

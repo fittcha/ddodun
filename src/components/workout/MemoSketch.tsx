@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useCallback, useReducer } from 'react'
 import { Undo2, Redo2, Eraser, Trash2, PaintBucket, PenLine } from 'lucide-react'
 
 /**
@@ -53,14 +53,25 @@ function drawGuide(ctx: CanvasRenderingContext2D, w: number, h: number, color: s
   ctx.restore()
 }
 
+/**
+ * 되돌리기 스택은 컴포넌트 밖(모듈)에 anchorId 로 들고 있는다.
+ * useState 에 두면 패널을 접었다 펴거나 상위가 리마운트할 때마다 비고,
+ * 클로저에 갇힌 인덱스가 묵으면 스택이 아예 안 쌓인다 — 그래서 undo 가 한 턴에서 멈춘다.
+ * 지금은 Map 의 같은 객체를 직접 고치므로 두 경우 다 생기지 않는다. 새로고침하면 초기화.
+ */
+const HISTORY = new Map<string, { stack: Stroke[][]; idx: number }>()
+const HISTORY_MAX = 30
+
 /** 색이 없던 옛 저장본(number[])을 지금 모양으로 올린다. */
 const normalize = (v: (Stroke | number[])[]): Stroke[] =>
   v.map(s => (Array.isArray(s) ? { c: 0, p: s } : s))
 
 export default function MemoSketch({
+  id,
   value,
   onChange,
 }: {
+  id: string
   value: (Stroke | number[])[]
   onChange: (strokes: Stroke[]) => void
 }) {
@@ -76,22 +87,26 @@ export default function MemoSketch({
   erasingRef.current = erasing
 
   // 되돌리기는 '마지막 획 빼기'가 아니라 스냅샷 스택이다 — 부분 지우개가 생긴 뒤로는
-  // 지운 것도 한 턴이라 획 개수만 봐서는 되돌릴 수 없다. 세션 한정(저장 안 함).
-  const [hist, setHist] = useState<Stroke[][]>([normalize(value)])
-  const [hi, setHi] = useState(0)
+  // 지운 것도 한 턴이라 획 개수만 봐서는 되돌릴 수 없다.
+  const [, bump] = useReducer((x: number) => x + 1, 0)
+  let h = HISTORY.get(id)
+  if (!h) { h = { stack: [normalize(value)], idx: 0 }; HISTORY.set(id, h) }
+  const hist = h
 
   // 그리는 중에는 서버 응답이 되돌아와도 ref 를 덮지 않는다 (진행 중인 획이 날아간다).
   if (!drawingRef.current) strokesRef.current = normalize(value)
 
   function commit(next: Stroke[]) {
-    setHist(h => [...h.slice(0, hi + 1), next])
-    setHi(hi + 1)
+    hist.stack = [...hist.stack.slice(0, hist.idx + 1), next].slice(-HISTORY_MAX)
+    hist.idx = hist.stack.length - 1
     onChange(next)
+    bump()
   }
   function step(to: number) {
-    setHi(to)
-    strokesRef.current = hist[to]
-    onChange(hist[to])
+    hist.idx = to
+    strokesRef.current = hist.stack[to]
+    onChange(hist.stack[to])
+    bump()
   }
 
   const redraw = useCallback(() => {
@@ -133,7 +148,7 @@ export default function MemoSketch({
     const ro = new ResizeObserver(redraw)
     ro.observe(canvas)
     return () => ro.disconnect()
-  }, [redraw, value, hi])
+  }, [redraw, value, hist.idx])
 
   /** 클라이언트 좌표 → 캔버스 CSS px. getBoundingClientRect 가 body zoom 까지 반영하므로 배율에 안전. */
   function toLocal(e: { clientX: number; clientY: number }): [number, number] {
@@ -269,16 +284,16 @@ export default function MemoSketch({
         </div>
         <div className="flex-1" />
         <button
-          onClick={() => step(hi - 1)}
-          disabled={hi === 0}
+          onClick={() => step(hist.idx - 1)}
+          disabled={hist.idx === 0}
           aria-label="되돌리기"
           className={`${btn} text-text-secondary/60`}
         >
           <Undo2 size={14} />
         </button>
         <button
-          onClick={() => step(hi + 1)}
-          disabled={hi >= hist.length - 1}
+          onClick={() => step(hist.idx + 1)}
+          disabled={hist.idx >= hist.stack.length - 1}
           aria-label="다시 실행"
           className={`${btn} text-text-secondary/60`}
         >
