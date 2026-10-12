@@ -584,6 +584,9 @@ function WorkoutSectionInner({ section, templates, logs, date, onLogUpdate, disp
 
   // 손글씨는 emom 과 같은 자리(sets_detail)에 둔다 — 컬럼 추가 없이 그룹별로 붙는다.
   function handleSketchChangeFor(anchorId: string, strokes: Stroke[]) {
+    // 손을 댄 순간 열림을 못 박는다. 기본값이 '획이 있으면 열림'이라,
+    // 지우개로 다 지우면 그리던 중에 캔버스가 저절로 닫혀버린다.
+    setSketchOpen(prev => ({ ...prev, [anchorId]: true }))
     const existing = getLog(anchorId)
     const detail = { ...parseDetail(existing?.sets_detail), sketch: strokes.length ? strokes : undefined }
     setLocalLogs(prev => ({
