@@ -59,7 +59,7 @@ function drawGuide(ctx: CanvasRenderingContext2D, w: number, h: number, color: s
  * 클로저에 갇힌 인덱스가 묵으면 스택이 아예 안 쌓인다 — 그래서 undo 가 한 턴에서 멈춘다.
  * 지금은 Map 의 같은 객체를 직접 고치므로 두 경우 다 생기지 않는다. 새로고침하면 초기화.
  */
-const HISTORY = new Map<string, { stack: Stroke[][]; idx: number }>()
+const HISTORY = new Map<string, { stack: Stroke[][]; idx: number; touched: boolean }>()
 const HISTORY_MAX = 30
 
 /** 색이 없던 옛 저장본(number[])을 지금 모양으로 올린다. */
@@ -88,15 +88,24 @@ export default function MemoSketch({
 
   // 되돌리기는 '마지막 획 빼기'가 아니라 스냅샷 스택이다 — 부분 지우개가 생긴 뒤로는
   // 지운 것도 한 턴이라 획 개수만 봐서는 되돌릴 수 없다.
-  const [, bump] = useReducer((x: number) => x + 1, 0)
+  const [rev, bump] = useReducer((x: number) => x + 1, 0)
   let h = HISTORY.get(id)
-  if (!h) { h = { stack: [normalize(value)], idx: 0 }; HISTORY.set(id, h) }
+  if (!h) { h = { stack: [normalize(value)], idx: 0, touched: false }; HISTORY.set(id, h) }
   const hist = h
 
-  // 그리는 중에는 서버 응답이 되돌아와도 ref 를 덮지 않는다 (진행 중인 획이 날아간다).
-  if (!drawingRef.current) strokesRef.current = normalize(value)
+  // 한 번이라도 그린 뒤로는 이 캔버스가 원본이고 value 를 더 읽지 않는다 (플래그도 Map 에 둬서
+  // 패널을 접었다 펴도 유지된다).
+  // 저장이 디바운스+비동기라, 앞선 획의 응답이 뒤늦게 돌아오면 그 사이에 그은 획을
+  // 덮어써 버린다("1,2 를 썼는데 3 을 쓰면 2 가 사라짐"). 아직 손대기 전이라면
+  // 로그가 늦게 도착하는 경우가 있으니 value 를 따라간다.
+  if (!hist.touched && !drawingRef.current) {
+    strokesRef.current = normalize(value)
+    hist.stack = [strokesRef.current]
+    hist.idx = 0
+  }
 
   function commit(next: Stroke[]) {
+    hist.touched = true
     hist.stack = [...hist.stack.slice(0, hist.idx + 1), next].slice(-HISTORY_MAX)
     hist.idx = hist.stack.length - 1
     onChange(next)
@@ -148,7 +157,7 @@ export default function MemoSketch({
     const ro = new ResizeObserver(redraw)
     ro.observe(canvas)
     return () => ro.disconnect()
-  }, [redraw, value, hist.idx])
+  }, [redraw, value, rev])
 
   /** 클라이언트 좌표 → 캔버스 CSS px. getBoundingClientRect 가 body zoom 까지 반영하므로 배율에 안전. */
   function toLocal(e: { clientX: number; clientY: number }): [number, number] {
@@ -219,7 +228,7 @@ export default function MemoSketch({
     if (d.dirty) commit(strokesRef.current) // 획이 끝날 때만 저장 → 디바운스 1회
   }
 
-  const empty = normalize(value).length === 0
+  const empty = strokesRef.current.length === 0
   const btn = 'w-7 h-7 flex items-center justify-center rounded disabled:opacity-25'
 
   return (
