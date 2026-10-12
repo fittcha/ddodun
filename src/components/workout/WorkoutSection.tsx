@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react'
+import { PenLine } from 'lucide-react'
 import MemoSketch, { type Stroke } from './MemoSketch'
 import type { WorkoutTemplate } from '@/lib/api/workout-templates'
 import type { WorkoutLog } from '@/lib/api/workout-logs'
@@ -249,6 +250,9 @@ function WorkoutSectionInner({ section, templates, logs, date, onLogUpdate, disp
   // Per-group toggles (keyed by group anchor template id)
   const [resultOpen, setResultOpen] = useState<Record<string, boolean>>({})
   const [memoOpen, setMemoOpen] = useState<Record<string, boolean>>({})
+  // 손글씨 캔버스는 '모드 전환'이 아니라 '펼치기'다 — 타이핑 메모를 가리지 않는다.
+  // 기본값은 획이 있으면 펼침: 저장 없이도 다시 열면 그려둔 게 보인다.
+  const [sketchOpen, setSketchOpen] = useState<Record<string, boolean>>({})
   const [resultMode, setResultMode] = useState<Record<string, InputMode>>({})
   const [sectionMemo, setSectionMemo] = useState<Record<string, string>>({})
   // Per-exercise weight
@@ -1132,19 +1136,45 @@ function WorkoutSectionInner({ section, templates, logs, date, onLogUpdate, disp
             {/* Per-group memo panel */}
             {gMemoOpen && (
               <div className="px-4 py-2 border-t border-border">
-                <input
-                  type="text"
-                  value={gMemo}
-                  onChange={e => handleMemoChangeFor(gAnchor, e.target.value)}
-                  placeholder="메모"
-                  className="w-full px-2 py-1 text-xs rounded border border-border bg-background text-foreground placeholder:text-text-secondary/40 focus:outline-none focus:border-accent"
-                />
-                <div className="mt-2">
-                  <MemoSketch
-                    value={(parseDetail(getLog(gAnchor)?.sets_detail).sketch as (Stroke | number[])[]) ?? []}
-                    onChange={strokes => handleSketchChangeFor(gAnchor, strokes)}
-                  />
-                </div>
+                {(() => {
+                  const gSketch = (parseDetail(getLog(gAnchor)?.sets_detail).sketch as (Stroke | number[])[]) ?? []
+                  const gSketchOpen = sketchOpen[gAnchor] ?? gSketch.length > 0
+                  return (
+                    <>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          value={gMemo}
+                          onChange={e => handleMemoChangeFor(gAnchor, e.target.value)}
+                          placeholder="메모"
+                          className="w-full pl-2 pr-8 py-1 text-xs rounded border border-border bg-background text-foreground placeholder:text-text-secondary/40 focus:outline-none focus:border-accent"
+                        />
+                        <button
+                          onClick={() => setSketchOpen(prev => ({ ...prev, [gAnchor]: !gSketchOpen }))}
+                          aria-label="손글씨"
+                          aria-expanded={gSketchOpen}
+                          className={`absolute right-0 top-0 h-full w-8 flex items-center justify-center ${
+                            gSketchOpen ? 'text-accent' : 'text-text-secondary/50'
+                          }`}
+                        >
+                          <PenLine size={14} />
+                          {/* 접혀 있어도 그려둔 게 있다는 걸 알려준다 — 숨은 상태를 만들지 않는다. */}
+                          {!gSketchOpen && gSketch.length > 0 && (
+                            <span className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full bg-accent" />
+                          )}
+                        </button>
+                      </div>
+                      {gSketchOpen && (
+                        <div className="mt-2">
+                          <MemoSketch
+                            value={gSketch}
+                            onChange={strokes => handleSketchChangeFor(gAnchor, strokes)}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )
+                })()}
               </div>
             )}
           </div>
