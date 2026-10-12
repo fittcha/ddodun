@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react'
+import MemoSketch, { type Stroke } from './MemoSketch'
 import type { WorkoutTemplate } from '@/lib/api/workout-templates'
 import type { WorkoutLog } from '@/lib/api/workout-logs'
 import { upsertLog } from '@/lib/api/workout-logs'
@@ -577,6 +578,17 @@ function WorkoutSectionInner({ section, templates, logs, date, onLogUpdate, disp
     debouncedSave(anchorId, section, { memo: value || null })
   }
 
+  // 손글씨는 emom 과 같은 자리(sets_detail)에 둔다 — 컬럼 추가 없이 그룹별로 붙는다.
+  function handleSketchChangeFor(anchorId: string, strokes: Stroke[]) {
+    const existing = getLog(anchorId)
+    const detail = { ...parseDetail(existing?.sets_detail), sketch: strokes.length ? strokes : undefined }
+    setLocalLogs(prev => ({
+      ...prev,
+      [anchorId]: { ...(prev[anchorId] || {} as WorkoutLog), sets_detail: detail }
+    }))
+    debouncedSave(anchorId, section, { sets_detail: detail as unknown })
+  }
+
   // === Toggle result/memo panels with persistence ===
   function toggleResultPanel(anchorId: string) {
     setResultOpen(prev => {
@@ -1127,6 +1139,12 @@ function WorkoutSectionInner({ section, templates, logs, date, onLogUpdate, disp
                   placeholder="메모"
                   className="w-full px-2 py-1 text-xs rounded border border-border bg-background text-foreground placeholder:text-text-secondary/40 focus:outline-none focus:border-accent"
                 />
+                <div className="mt-2">
+                  <MemoSketch
+                    value={(parseDetail(getLog(gAnchor)?.sets_detail).sketch as Stroke[]) ?? []}
+                    onChange={strokes => handleSketchChangeFor(gAnchor, strokes)}
+                  />
+                </div>
               </div>
             )}
           </div>
