@@ -1141,7 +1141,7 @@ function WorkoutSectionInner({ section, templates, logs, date, onLogUpdate, disp
                 />
                 <div className="mt-2">
                   <MemoSketch
-                    value={(parseDetail(getLog(gAnchor)?.sets_detail).sketch as Stroke[]) ?? []}
+                    value={(parseDetail(getLog(gAnchor)?.sets_detail).sketch as (Stroke | number[])[]) ?? []}
                     onChange={strokes => handleSketchChangeFor(gAnchor, strokes)}
                   />
                 </div>
