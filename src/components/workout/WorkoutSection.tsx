@@ -24,6 +24,9 @@ interface WorkoutSectionProps {
   onDuplicateToDate?: (templates: WorkoutTemplate[]) => Promise<void> | void
 }
 
+const SAVE_DEBOUNCE = 800
+const MAX_SAVE_WAIT = 2500 // 입력이 끊기지 않아도 이만큼 지나면 저장한다
+
 function parseDetail(raw: unknown): Record<string, unknown> {
   if (raw && typeof raw === 'object') return raw as Record<string, unknown>
   if (typeof raw === 'string') {
@@ -259,7 +262,9 @@ function WorkoutSectionInner({ section, templates, logs, date, onLogUpdate, disp
   const [weightOpen, setWeightOpen] = useState<Record<string, boolean>>({})
   const [units, setUnits] = useState<Record<string, 'lb' | 'kg'>>({})
   const debounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
-  const pendingSavesRef = useRef<Record<string, () => void>>({})
+  const pendingSavesRef = useRef<Record<string, (keepalive?: boolean) => void>>({})
+  // 템플릿별로 '처음 바뀐 시각'. 계속 입력하면 디바운스가 매번 리셋돼 아무것도 저장되지 않는다.
+  const firstPendingRef = useRef<Record<string, number>>({})
   const localLogsRef = useRef<Record<string, WorkoutLog>>({})
 
   // Long-press exercise search
@@ -373,7 +378,12 @@ function WorkoutSectionInner({ section, templates, logs, date, onLogUpdate, disp
     return localLogs[templateId] || logs.find(l => l.template_id === templateId) || null
   }
 
-  const saveLog = useCallback(async (templateId: string, sec: string, updates: Partial<WorkoutLog>) => {
+  const saveLog = useCallback(async (
+    templateId: string,
+    sec: string,
+    updates: Partial<WorkoutLog>,
+    keepalive = false,
+  ) => {
     const existing = localLogsRef.current[templateId] || logs.find(l => l.template_id === templateId)
     try {
       const saved = await upsertLog({
@@ -385,8 +395,14 @@ function WorkoutSectionInner({ section, templates, logs, date, onLogUpdate, disp
         completed: updates.completed ?? existing?.completed ?? false,
         sets_detail: updates.sets_detail ?? existing?.sets_detail ?? null,
         memo: updates.memo ?? existing?.memo ?? null,
+      }, keepalive)
+      // 응답은 '보낼 당시의' 내용이다. 왕복하는 사이에 더 입력했으면 화면이 과거로 되돌아가고,
+      // 다음 저장이 그 과거를 그대로 서버에 덮어써 입력한 게 통째로 날아간다.
+      // 서버에서 꼭 받아야 하는 건 id 뿐이므로 내용은 로컬 것을 남긴다.
+      setLocalLogs(prev => {
+        const local = prev[templateId]
+        return { ...prev, [templateId]: local ? { ...saved, ...local, id: saved.id } : saved }
       })
-      setLocalLogs(prev => ({ ...prev, [templateId]: saved }))
       onLogUpdate(saved)
     } catch (err) {
       console.error('Failed to save log:', err)
@@ -395,21 +411,41 @@ function WorkoutSectionInner({ section, templates, logs, date, onLogUpdate, disp
 
   function debouncedSave(templateId: string, sec: string, updates: Partial<WorkoutLog>) {
     if (debounceRef.current[templateId]) clearTimeout(debounceRef.current[templateId])
-    const doSave = () => {
+    const doSave = (keepalive?: boolean) => {
       delete pendingSavesRef.current[templateId]
-      saveLog(templateId, sec, updates)
+      delete firstPendingRef.current[templateId]
+      saveLog(templateId, sec, updates, keepalive)
     }
     pendingSavesRef.current[templateId] = doSave
-    debounceRef.current[templateId] = setTimeout(doSave, 800)
+    // 쉬지 않고 입력하면 타이머가 매번 리셋돼 한 번도 저장되지 않는다.
+    // 처음 바뀐 시점부터 MAX_SAVE_WAIT 가 지나면 더 기다리지 않는다.
+    firstPendingRef.current[templateId] ??= Date.now()
+    const left = firstPendingRef.current[templateId] + MAX_SAVE_WAIT - Date.now()
+    debounceRef.current[templateId] = setTimeout(doSave, Math.max(0, Math.min(SAVE_DEBOUNCE, left)))
   }
 
-  // Flush all pending debounced saves on unmount
+  const flushSaves = useCallback((keepalive: boolean) => {
+    for (const timer of Object.values(debounceRef.current)) clearTimeout(timer)
+    const pending = Object.values(pendingSavesRef.current)
+    pendingSavesRef.current = {}
+    firstPendingRef.current = {}
+    for (const save of pending) save(keepalive)
+  }, [])
+
+  // 대기 중인 저장을 비우는 시점들. 언마운트만으로는 부족하다 — 폰에서 앱을 내리거나
+  // 탭을 닫으면 컴포넌트는 언마운트되지 않고 타이머만 얼어붙은 채 페이지가 버려진다.
+  // 그래서 적어둔 게 통째로 사라진다. keepalive 로 보내 전환 중에도 요청이 끝까지 가게 한다.
   useEffect(() => {
+    const onHide = () => { if (document.visibilityState === 'hidden') flushSaves(true) }
+    const onPageHide = () => flushSaves(true)
+    document.addEventListener('visibilitychange', onHide)
+    window.addEventListener('pagehide', onPageHide)
     return () => {
-      for (const timer of Object.values(debounceRef.current)) clearTimeout(timer)
-      for (const flush of Object.values(pendingSavesRef.current)) flush()
+      document.removeEventListener('visibilitychange', onHide)
+      window.removeEventListener('pagehide', onPageHide)
+      flushSaves(false)
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [flushSaves])
 
   // === Per-exercise: completion toggle ===
   function handleToggle(templateId: string, sec: string) {
