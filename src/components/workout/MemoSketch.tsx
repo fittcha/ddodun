@@ -16,6 +16,30 @@ const PALETTE = ['--foreground', '--danger', '--success']
 const LINE_WIDTH = 2
 const MIN_STEP = 1.5 // px. 이보다 가까운 점은 버려서 JSON 을 줄인다.
 const ERASE_R = 10 // px. 이 안에 들어온 획을 통째로 지운다 (벡터라 픽셀 지우개가 필요 없다).
+const GUIDE_ALPHA = 0.09
+
+/** 빈 캔버스 바탕에 옅게 깔리는 안내 — 대각선으로 흘려 쓴 두 바퀴. 획이 하나라도 생기면 사라진다. */
+function drawGuide(ctx: CanvasRenderingContext2D, w: number, h: number, color: string) {
+  const x0 = w * 0.27, y0 = h * 0.70, x1 = w * 0.73, y1 = h * 0.34
+  const len = Math.hypot(x1 - x0, y1 - y0)
+  const loops = 2, seg = len / loops, amp = h * 0.32
+  ctx.save()
+  ctx.globalAlpha = GUIDE_ALPHA
+  ctx.strokeStyle = color
+  ctx.lineWidth = Math.max(2, h * 0.03)
+  ctx.translate(x0, y0)
+  ctx.rotate(Math.atan2(y1 - y0, x1 - x0))
+  ctx.beginPath()
+  ctx.moveTo(0, 0)
+  // 제어점을 좌우로 엇갈리게 두면 아치가 아니라 필기체처럼 제 몸을 한 번 감는다.
+  for (let i = 0; i < loops; i++) {
+    const x = i * seg
+    ctx.bezierCurveTo(x + seg * 0.95, -amp, x + seg * 0.05, -amp, x + seg, 0)
+  }
+  ctx.quadraticCurveTo(len + seg * 0.2, 0, len + seg * 0.4, -amp * 0.45)
+  ctx.stroke()
+  ctx.restore()
+}
 
 /** 색이 없던 옛 저장본(number[])을 지금 모양으로 올린다. */
 const normalize = (v: (Stroke | number[])[]): Stroke[] =>
@@ -58,6 +82,7 @@ export default function MemoSketch({
     const cs = getComputedStyle(canvas)
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     ctx.clearRect(0, 0, w, h)
+    if (strokesRef.current.length === 0) drawGuide(ctx, w, h, cs.color)
     ctx.lineWidth = LINE_WIDTH
     ctx.lineCap = 'round'
     ctx.lineJoin = 'round'
@@ -146,7 +171,7 @@ export default function MemoSketch({
 
   return (
     <div>
-      <div className="relative">
+      <div>
         <canvas
           ref={canvasRef}
           onPointerDown={onPointerDown}
@@ -156,11 +181,6 @@ export default function MemoSketch({
           // touch-action:none 이 없으면 획 대신 페이지가 스크롤된다.
           className="w-full aspect-[5/2] touch-none rounded border border-border bg-background text-foreground"
         />
-        {empty && (
-          <span className="pointer-events-none absolute left-2 top-1.5 text-xs text-text-secondary/40">
-            여기에 손글씨
-          </span>
-        )}
       </div>
       <div className="mt-1 flex items-center gap-1">
         <div className="relative">
