@@ -16,35 +16,39 @@ const PALETTE = ['--foreground', '--danger', '--success']
 const LINE_WIDTH = 2
 const MIN_STEP = 1.5 // px. 이보다 가까운 점은 버려서 JSON 을 줄인다.
 const ERASE_R = 10 // px. 이 안에 들어온 획을 통째로 지운다 (벡터라 픽셀 지우개가 필요 없다).
-const GUIDE_ALPHA = 0.09
+const GUIDE_ALPHA = 0.06
 
 /**
- * 빈 캔버스 바탕에 옅게 깔리는 안내 — 대각선으로 흘려 쓴 필기체 l 두 바퀴.
- * 베지어를 이어붙이면 이음새마다 각이 져서 뾰족해진다. 매개변수 곡선 한 줄로 뽑으면
- * 이음새 자체가 없다: y 가 sin² 이라 바닥(t=0,1,2)에서 접선이 수평 → U 로 둥글게 넘어가고,
+ * 빈 캔버스 바탕에 옅게 깔리는 안내 — 가운데 작게 흘려 쓴 필기체 l 한 바퀴.
+ * 베지어를 이어붙이면 이음새마다 접선이 안 맞아 뾰족해진다. 매개변수 곡선으로 뽑으면
+ * 이음새 자체가 없다: y 가 sin² 이라 바닥에서 접선이 수평 → U 로 둥글게 넘어가고,
  * x 의 sin 항이 꼭대기에서 잠깐 뒤로 밀어 선이 제 몸을 감는다(= l 의 고리).
+ * 위치는 손으로 맞추지 않고 그린 점들의 바운딩박스를 캔버스 중앙에 맞춘다.
  */
 function drawGuide(ctx: CanvasRenderingContext2D, w: number, h: number, color: string) {
-  const x0 = w * 0.26, y0 = h * 0.66, x1 = w * 0.74, y1 = h * 0.44
-  const loops = 2, len = Math.hypot(x1 - x0, y1 - y0), seg = len / loops
-  const amp = h * 0.30, loopW = seg * 0.3 // loopW > seg/4 라야 고리가 실제로 교차한다
-  ctx.save()
-  ctx.globalAlpha = GUIDE_ALPHA
-  ctx.strokeStyle = color
-  ctx.lineWidth = Math.max(2, h * 0.03)
-  ctx.lineCap = 'round'
-  ctx.lineJoin = 'round'
-  ctx.translate(x0, y0)
-  ctx.rotate(Math.atan2(y1 - y0, x1 - x0))
-  ctx.beginPath()
-  const T0 = -0.15, T1 = loops + 0.3, STEPS = 140 // 앞뒤로 조금 더 돌려 들임·날림 획을 만든다
+  const seg = h * 0.6, amp = h * 0.26
+  const loopW = seg * 0.3 // loopW > seg/4 라야 고리가 실제로 교차한다
+  const ang = (-12 * Math.PI) / 180
+  const cos = Math.cos(ang), sin = Math.sin(ang)
+  const pts: [number, number][] = []
+  const T0 = -0.15, T1 = 1.3, STEPS = 90 // 앞뒤로 조금 더 돌려 들임·날림 획을 만든다
   for (let i = 0; i <= STEPS; i++) {
     const t = T0 + ((T1 - T0) * i) / STEPS
     const x = seg * t + loopW * Math.sin(2 * Math.PI * t)
     const y = -amp * Math.sin(Math.PI * t) ** 2
-    if (i) ctx.lineTo(x, y)
-    else ctx.moveTo(x, y)
+    pts.push([x * cos - y * sin, x * sin + y * cos])
   }
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1])
+  const dx = w / 2 - (Math.min(...xs) + Math.max(...xs)) / 2
+  const dy = h / 2 - (Math.min(...ys) + Math.max(...ys)) / 2
+  ctx.save()
+  ctx.globalAlpha = GUIDE_ALPHA
+  ctx.strokeStyle = color
+  ctx.lineWidth = Math.max(1.5, h * 0.022)
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  ctx.beginPath()
+  pts.forEach(([x, y], i) => (i ? ctx.lineTo(x + dx, y + dy) : ctx.moveTo(x + dx, y + dy)))
   ctx.stroke()
   ctx.restore()
 }
