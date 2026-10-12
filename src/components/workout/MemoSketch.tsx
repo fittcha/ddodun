@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect, useCallback } from 'react'
-import { Undo2, Eraser, Trash2 } from 'lucide-react'
+import { Undo2, Eraser, Trash2, PaintBucket } from 'lucide-react'
 
 /**
  * 메모칸 손글씨. 애플펜슬/손가락으로 그리고, 획을 좌표 배열로 JSON 에 저장한다.
@@ -35,6 +35,7 @@ export default function MemoSketch({
   const sawPenRef = useRef(false)
   const [color, setColor] = useState(0)
   const [erasing, setErasing] = useState(false)
+  const [paletteOpen, setPaletteOpen] = useState(false)
   const erasingRef = useRef(false)
   erasingRef.current = erasing
 
@@ -162,22 +163,41 @@ export default function MemoSketch({
         )}
       </div>
       <div className="mt-1 flex items-center gap-1">
-        {PALETTE.map((v, i) => (
+        <div className="relative">
+          {/* 칩은 평소 접어둔다 — 툴바에 늘 펼쳐두면 지우개/되돌리기와 섞여 무거워진다. */}
+          {paletteOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setPaletteOpen(false)} />
+              <div className="absolute bottom-full left-0 z-50 mb-1 flex gap-1.5 rounded-full border border-border bg-surface px-2 py-1.5 shadow-lg">
+                {PALETTE.map((v, i) => (
+                  <button
+                    key={v}
+                    onClick={() => { setColor(i); setErasing(false); setPaletteOpen(false) }}
+                    aria-label={`색 ${i + 1}`}
+                    className={`w-5 h-5 rounded-full border-2 ${
+                      color === i ? 'border-text-secondary' : 'border-transparent'
+                    }`}
+                  >
+                    <span className="block w-full h-full rounded-full" style={{ background: `var(${v})` }} />
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
           <button
-            key={v}
-            onClick={() => { setColor(i); setErasing(false) }}
-            aria-label={`색 ${i + 1}`}
-            className={`w-5 h-5 rounded-full border-2 ${
-              color === i && !erasing ? 'border-text-secondary' : 'border-transparent'
-            }`}
+            onClick={() => setPaletteOpen(v => !v)}
+            aria-label="색상"
+            aria-expanded={paletteOpen}
+            className={btn}
+            style={{ color: erasing ? undefined : `var(${PALETTE[color]})` }}
           >
-            <span className="block w-full h-full rounded-full" style={{ background: `var(${v})` }} />
+            <PaintBucket size={15} className={erasing ? 'text-text-secondary/40' : undefined} />
           </button>
-        ))}
+        </div>
         <button
           onClick={() => setErasing(v => !v)}
           aria-label="지우개"
-          className={`${btn} ml-1 ${erasing ? 'bg-highlight text-highlight-text' : 'text-text-secondary/60'}`}
+          className={`${btn} ${erasing ? 'bg-highlight text-highlight-text' : 'text-text-secondary/60'}`}
         >
           <Eraser size={14} />
         </button>
