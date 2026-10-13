@@ -164,11 +164,22 @@ function sigOf(includedIds: string[], logByTemplate: Map<string, WorkoutLog>): s
  * (모든 추가운동이 section='추가운동'이라 section으로 묶으면 하나로 합쳐져 헤더가 1개만 생김).
  */
 const groupKeyOf = (t: WorkoutTemplate): string => t.extra_group_id ?? t.section
-/** 정렬 키(ASCII로 충돌 없이): 코치 섹션 먼저('0'+section), 그 뒤 추가운동을 extra_order 순('1'+order)으로. */
+/**
+ * 정렬 키(ASCII로 충돌 없이): 코치 섹션 먼저('0'…), 그 뒤 추가운동을 extra_order 순('1'…)으로.
+ * 코치 섹션은 section 문자열이 아니라 sort_order 로 줄 세운다 — 세션2 의 '1','2' 가
+ * 알파벳순에선 세션1 의 'A','B' 앞으로 올라와 세션 순서가 뒤집힌다.
+ */
 const orderKeyOf = (t: WorkoutTemplate): string =>
   t.extra_group_id
     ? '1' + String(t.extra_order ?? 0).padStart(6, '0') + t.extra_group_id
-    : '0' + t.section
+    : '0' + String(t.sort_order).padStart(6, '0')
+
+/** 그룹의 정렬 키 = 그룹에서 가장 앞선 템플릿의 키. */
+const groupOrderKey = (ids: string[], byId: Map<string, WorkoutTemplate>): string | null => {
+  const ts = ids.map(id => byId.get(id)).filter((t): t is WorkoutTemplate => !!t)
+  if (ts.length === 0) return null
+  return orderKeyOf(ts.reduce((a, b) => (b.sort_order < a.sort_order ? b : a)))
+}
 
 /** stored를 base로, 현재 templates/logs를 반영한 새 문서를 반환(멱등). */
 export function reconcileSummary(
@@ -196,14 +207,14 @@ export function reconcileSummary(
       groups.get(k)!.push(id)
     }
     const ordered = [...groups.entries()].sort((a, b) =>
-      orderKeyOf(templateById.get(a[1][0])!).localeCompare(orderKeyOf(templateById.get(b[1][0])!)))
+      (groupOrderKey(a[1], templateById) ?? '').localeCompare(groupOrderKey(b[1], templateById) ?? ''))
     const blocks: DaySummaryBlock[] = []
     const parts: string[] = []
     for (const [k, idsRaw] of ordered) {
       const ids = idsRaw.sort((x, y) => templateById.get(x)!.sort_order - templateById.get(y)!.sort_order)
       const t0 = templateById.get(ids[0])!
       const header = t0.section
-      const order = orderKeyOf(t0)
+      const order = groupOrderKey(ids, templateById)!
       const snippet = genSectionBlock(header, ids, templateById, logByTemplate)
       parts.push(snippet)
       blocks.push({ key: k, header, order, template_ids: ids, sig: sigOf(ids, logByTemplate), auto_snippet: snippet })
@@ -217,11 +228,9 @@ export function reconcileSummary(
   const blocks: DaySummaryBlock[] = stored.blocks.map(b => ({ ...b, template_ids: [...new Set(b.template_ids)] }))
   let dirty = false
   // 구버전 블록(order 없음) 호환: 템플릿에서 정렬 키를 일관되게 유도
-  const orderOf = (b: DaySummaryBlock): string => {
-    if (b.order != null) return b.order
-    const t = templateById.get(b.template_ids[0])
-    return t ? orderKeyOf(t) : b.key
-  }
+  // 저장된 order 는 옛 형식('0A')일 수 있어 새 키와 섞이면 비교가 깨진다. 템플릿이 있으면 항상 다시 구한다.
+  const orderOf = (b: DaySummaryBlock): string =>
+    groupOrderKey(b.template_ids, templateById) ?? b.order ?? b.key
 
   // 1) 신규 완료 흡수 (그룹 단위, 정렬 순서 삽입)
   const reflected = new Set(blocks.flatMap(b => b.template_ids))
@@ -238,7 +247,7 @@ export function reconcileSummary(
       existing.template_ids.push(...ids) // 멤버십 증가 → 2단계에서 재생성
       continue
     }
-    const t0 = templateById.get(ids[0])!
+    const t0 = ids.map(id => templateById.get(id)!).reduce((a, b) => (b.sort_order < a.sort_order ? b : a))
     const header = t0.section
     const order = orderKeyOf(t0)
     const snippet = genSectionBlock(header, ids, templateById, logByTemplate)
