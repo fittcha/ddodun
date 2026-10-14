@@ -118,25 +118,6 @@ function buildSectionBlock(section: string, items: WorkoutTemplate[], logMap: Ma
   return lines.join('\n')
 }
 
-/** 기존 전체 요약 텍스트(완료된 것만). 동작 불변. */
-export function generateSummaryText(templates: WorkoutTemplate[], logs: WorkoutLog[]): string {
-  const logMap = new Map<string, WorkoutLog>()
-  for (const l of logs) if (l.template_id && l.completed) logMap.set(l.template_id, l)
-  const completed = templates
-    .filter(t => logMap.has(t.id))
-    // 섹션 문자열이 아니라 sort_order 가 그날의 순서다 (Session 2 의 '1','2' 와
-    // 'S1','S2' 구분선이 알파벳순에서 제자리를 못 찾는다).
-    .sort((a, b) => a.sort_order - b.sort_order)
-  if (completed.length === 0) return ''
-  const sections: { section: string; items: WorkoutTemplate[] }[] = []
-  for (const t of completed) {
-    const last = sections[sections.length - 1]
-    if (last && last.section === t.section) last.items.push(t)
-    else sections.push({ section: t.section, items: [t] })
-  }
-  return sections.map(s => buildSectionBlock(s.section, s.items, logMap)).join('\n\n')
-}
-
 // ---- 증분 reconcile ----
 
 function genSectionBlock(
@@ -147,6 +128,8 @@ function genSectionBlock(
     .map(id => templateById.get(id))
     .filter((t): t is WorkoutTemplate => !!t)
     .sort((a, b) => a.sort_order - b.sort_order)
+  // 구분선은 제목 한 줄이 전부다 (로그가 없어 일반 블록 생성기로는 헤더만 남은 빈 블록이 된다).
+  if (items.length > 0 && items.every(isDivider)) return items.map(t => t.title).join('\n')
   return buildSectionBlock(section, items, logByTemplate)
 }
 
@@ -164,6 +147,11 @@ function sigOf(includedIds: string[], logByTemplate: Map<string, WorkoutLog>): s
  * (모든 추가운동이 section='추가운동'이라 section으로 묶으면 하나로 합쳐져 헤더가 1개만 생김).
  */
 const groupKeyOf = (t: WorkoutTemplate): string => t.extra_group_id ?? t.section
+
+
+/** 세션 구분선: 로그가 달리지 않는 소제목 note 행("Session 1"/"Session 2"). */
+const isDivider = (t: WorkoutTemplate): boolean =>
+  t.workout_type === 'note' && !!t.title && !t.extra_group_id
 /**
  * 정렬 키(ASCII로 충돌 없이): 코치 섹션 먼저('0'…), 그 뒤 추가운동을 extra_order 순('1'…)으로.
  * 코치 섹션은 section 문자열이 아니라 sort_order 로 줄 세운다 — 세션2 의 '1','2' 가
@@ -198,10 +186,24 @@ export function reconcileSummary(
       .map(l => l.template_id as string),
   )]
 
+  // 구분선은 완료될 수 없으니(로그가 없다) 따로 챙긴다 — 그 세션에서 완료된 운동이
+  // 하나라도 있으면 소제목으로 넣는다. 추가운동은 세션에 속하지 않아 계산에서 뺀다.
+  const dividers = templates.filter(isDivider).sort((a, b) => a.sort_order - b.sort_order)
+  const doneOrders = completedIds
+    .map(id => templateById.get(id)!)
+    .filter(t => !t.extra_group_id)
+    .map(t => t.sort_order)
+  const includedIds = [...completedIds, ...dividers
+    .filter((d, i) => {
+      const next = dividers[i + 1]?.sort_order ?? Infinity
+      return doneOrders.some(o => o > d.sort_order && o < next)
+    })
+    .map(d => d.id)]
+
   // 문서 없음 → 완료된 것만으로 전체 생성 (리셋과 동일). 그룹 단위(코치 섹션/추가운동 그룹)로 분리.
   if (!stored) {
     const groups = new Map<string, string[]>()
-    for (const id of completedIds) {
+    for (const id of includedIds) {
       const k = groupKeyOf(templateById.get(id)!)
       if (!groups.has(k)) groups.set(k, [])
       groups.get(k)!.push(id)
@@ -234,7 +236,7 @@ export function reconcileSummary(
 
   // 1) 신규 완료 흡수 (그룹 단위, 정렬 순서 삽입)
   const reflected = new Set(blocks.flatMap(b => b.template_ids))
-  const newIds = completedIds.filter(id => !reflected.has(id))
+  const newIds = includedIds.filter(id => !reflected.has(id))
   const byGroup = new Map<string, string[]>()
   for (const id of newIds) {
     const k = groupKeyOf(templateById.get(id)!)
