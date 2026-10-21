@@ -6,6 +6,8 @@ import { ChevronLeft, ChevronRight, Trophy } from 'lucide-react'
 import WorkoutSection from '@/components/workout/WorkoutSection'
 import CustomWorkoutForm from '@/components/workout/CustomWorkoutForm'
 import Calculator from '@/components/workout/Calculator'
+import DaySwapPopover from '@/components/workout/DaySwapPopover'
+import { getWeekSwapState, swapDays, type WeekSwapState } from '@/lib/api/day-swaps'
 import { getTemplatesByDate, getTemplateDatesByRange, getExtraTemplatesByDate, duplicateSectionToDate, deleteExtraGroup, type WorkoutTemplate } from '@/lib/api/workout-templates'
 import { getLogsByDate, type WorkoutLog } from '@/lib/api/workout-logs'
 import { getCompetitionByDate, type Competition } from '@/lib/api/competitions'
@@ -48,6 +50,51 @@ function WorkoutContent() {
       setWeekTemplateDates(new Set(dates))
     }).catch(() => {})
   }, [weekDays[0]]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 날짜 바꾸기: 요일 길게 누르기 → 팝업에서 바꿀 날 선택
+  const [swapState, setSwapState] = useState<WeekSwapState | null>(null)
+  const [popoverDate, setPopoverDate] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ text: string; undo?: [string, string] } | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const press = useRef<{ timer: ReturnType<typeof setTimeout>; x: number; y: number } | null>(null)
+  const longPressed = useRef(false)
+
+  const refreshSwapState = useCallback(() => {
+    getWeekSwapState(weekDays[0]).then(setSwapState).catch(() => {})
+  }, [weekDays[0]]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    setPopoverDate(null)
+    refreshSwapState()
+  }, [refreshSwapState])
+
+  function showToast(text: string, undo?: [string, string]) {
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    setToast({ text, undo })
+    toastTimer.current = setTimeout(() => setToast(null), 3000)
+  }
+
+  function startPress(d: string, e: React.PointerEvent) {
+    longPressed.current = false
+    press.current = {
+      x: e.clientX,
+      y: e.clientY,
+      timer: setTimeout(() => {
+        longPressed.current = true
+        press.current = null
+        setPopoverDate(d)
+      }, 500),
+    }
+  }
+
+  function cancelPress() {
+    if (press.current) clearTimeout(press.current.timer)
+    press.current = null
+  }
+
+  function movePress(e: React.PointerEvent) {
+    if (press.current && Math.hypot(e.clientX - press.current.x, e.clientY - press.current.y) > 10) cancelPress()
+  }
 
   const loadData = useCallback(async () => {
     const cached = dateCache.get(date)
@@ -102,6 +149,23 @@ function WorkoutContent() {
   function selectDate(newDate: string) {
     setDate(newDate)
     router.replace(`/workout?date=${newDate}`, { scroll: false })
+  }
+
+  async function doSwap(a: string, b: string, isUndo: boolean) {
+    setPopoverDate(null)
+    try {
+      await swapDays(a, b)
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : '바꾸지 못했어요')
+      return
+    }
+    dateCache.delete(a)
+    dateCache.delete(b)
+    refreshSwapState()
+    if (date === a || date === b) loadData()
+    const label = (d: string) => WEEK_DAY_LABELS[weekDays.indexOf(d)]
+    if (isUndo) showToast('되돌렸어요')
+    else showToast(`${label(a)} ⇄ ${label(b)} 바꿨어요`, [a, b])
   }
 
   function navigateWeek(offset: number) {
@@ -263,10 +327,20 @@ function WorkoutContent() {
               const isWeekend = i >= 5
               const hasTemplate = weekTemplateDates.has(d)
               return (
+                <div key={d} className="relative">
                 <button
-                  key={d}
-                  onClick={() => selectDate(d)}
-                  className={`flex flex-col items-center py-1 rounded-md transition-colors ${
+                  onClick={() => {
+                    // 길게 눌러 팝업을 연 직후의 click 은 날짜 이동이 아니다
+                    if (longPressed.current) { longPressed.current = false; return }
+                    selectDate(d)
+                  }}
+                  onPointerDown={e => startPress(d, e)}
+                  onPointerUp={cancelPress}
+                  onPointerLeave={cancelPress}
+                  onPointerCancel={cancelPress}
+                  onPointerMove={movePress}
+                  onContextMenu={e => e.preventDefault()}
+                  className={`w-full select-none [-webkit-touch-callout:none] flex flex-col items-center py-1 rounded-md transition-colors ${
                     isSelected
                       ? 'bg-accent text-white'
                       : isToday
@@ -287,6 +361,17 @@ function WorkoutContent() {
                     {dayNum}
                   </span>
                 </button>
+                {popoverDate === d && swapState && (
+                  <DaySwapPopover
+                    date={d}
+                    weekDays={weekDays}
+                    state={swapState}
+                    align={i === 0 ? 'left' : i === 6 ? 'right' : 'center'}
+                    onPick={target => doSwap(d, target, false)}
+                    onClose={() => setPopoverDate(null)}
+                  />
+                )}
+                </div>
               )
             })}
           </div>
@@ -301,6 +386,20 @@ function WorkoutContent() {
           </div>
         )}
       </div>
+
+      {toast && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-foreground/90 text-white text-xs rounded-full px-4 py-2 flex items-center gap-3 shadow-lg whitespace-nowrap">
+          <span>{toast.text}</span>
+          {toast.undo && (
+            <button
+              onClick={() => { const [a, b] = toast.undo!; doSwap(a, b, true) }}
+              className="font-bold text-accent-light"
+            >
+              되돌리기
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Competition card */}
       {competition && (
