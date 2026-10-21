@@ -40,6 +40,25 @@ async function assignedVersionId(athleteId: string, date: string): Promise<strin
   return data?.[0]?.version_id ?? null
 }
 
+/** 선수에게 그 주 배정된 버전의 코치 템플릿 id·날짜. 배정이 없으면 null. */
+export async function coachTemplatesInWeek(
+  athleteId: string,
+  weekStart: string,
+): Promise<{ id: string; date: string }[] | null> {
+  const versionId = await assignedVersionId(athleteId, weekStart)
+  if (!versionId) return null
+
+  const { data, error } = await db
+    .from('program_version_templates')
+    .select('workout_templates!inner(id, date)')
+    .eq('version_id', versionId)
+    .is('workout_templates.extra_group_id', null)
+  if (error) throw error
+  return (data ?? []).map(
+    r => (r as unknown as { workout_templates: { id: string; date: string } }).workout_templates,
+  )
+}
+
 /** 코치 프로그램 템플릿 (추가운동 제외). */
 export async function resolveTemplates(athleteId: string, date: string): Promise<WorkoutTemplate[]> {
   const versionId = await assignedVersionId(athleteId, date)
