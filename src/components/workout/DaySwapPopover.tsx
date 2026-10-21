@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { WEEK_DAY_LABELS } from '@/lib/date-utils'
 import type { WeekSwapState } from '@/lib/api/day-swaps'
 
@@ -20,6 +21,7 @@ const ALIGN = {
 
 /** 주간 스트립에서 요일을 길게 눌렀을 때 그 요일 아래에 뜨는 "바꿀 날" 팝업. */
 export default function DaySwapPopover({ date, weekDays, state, align, onPick, onClose }: DaySwapPopoverProps) {
+  const [picking, setPicking] = useState(false)
   const label = (d: string) => WEEK_DAY_LABELS[weekDays.indexOf(d)]
   const coach = new Set(state.coachDates)
   const records = new Set(state.recordDates)
@@ -33,12 +35,17 @@ export default function DaySwapPopover({ date, weekDays, state, align, onPick, o
     <>
       <div className="fixed inset-0 z-40" onClick={onClose} />
       <div className={`absolute top-full mt-1.5 z-50 ${ALIGN[align]} bg-surface border border-border rounded-xl shadow-lg px-3 py-2.5 whitespace-nowrap`}>
-        <p className="text-[11px] text-text-secondary mb-2">
-          {label(date)} {parseInt(date.slice(8, 10))}과 바꿀 날
-        </p>
         {selfReason ? (
           <p className="text-xs">{selfReason}</p>
+        ) : !picking ? (
+          <button onClick={() => setPicking(true)} className="text-xs font-medium">
+            ⇄ 날짜 바꾸기
+          </button>
         ) : (
+          <>
+          <p className="text-[11px] text-text-secondary mb-2">
+            {label(date)}({parseInt(date.slice(8, 10))})과 바꿀 날
+          </p>
           <div className="flex gap-1">
             {weekDays.filter(d => d !== date).map(d => {
               const disabled = !coach.has(d) || records.has(d)
@@ -56,8 +63,8 @@ export default function DaySwapPopover({ date, weekDays, state, align, onPick, o
               )
             })}
           </div>
+          </>
         )}
-        <p className="text-[10px] text-text-secondary/70 mt-2">같은 프로그램을 받는 모두에게 바뀌어요</p>
       </div>
     </>
   )
