@@ -15,6 +15,19 @@ test('hasContent: 빈 행·단위만·공백 메모는 false', () => {
   assert.equal(hasContent(L({ memo: '  ' })), false)
 })
 
+test('hasContent: 화면 상태·단위·타입만 저장된 sets_detail은 false', () => {
+  assert.equal(hasContent(L({ sets_detail: { _result_open: false } })), false)
+  assert.equal(hasContent(L({ sets_detail: { _memo_open: true } })), false)
+  assert.equal(hasContent(L({ sets_detail: { exercise_weights: { 0: { unit: 'kg' } } } })), false)
+  assert.equal(hasContent(L({ sets_detail: { result_type: 'rounds', rounds: null, reps: null } })), false)
+  assert.equal(hasContent(L({ sets_detail: { emom: [{ name: '', value: null, measure: 'reps', weight_unit: 'lb' }] } })), false)
+})
+
+test('hasContent: 중첩된 실제 값은 true', () => {
+  assert.equal(hasContent(L({ sets_detail: { exercise_weights: { 0: { weight: 60, unit: 'kg' } } } })), true)
+  assert.equal(hasContent(L({ sets_detail: { emom: [{ name: '', value: 12, measure: 'reps' }] } })), true)
+})
+
 test('hasContent: 완료·결과·메모·무게는 true', () => {
   assert.equal(hasContent(L({ completed: true })), true)
   assert.equal(hasContent(L({ result_value: '12:30' })), true)

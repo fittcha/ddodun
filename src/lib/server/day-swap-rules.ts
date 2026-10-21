@@ -11,23 +11,25 @@ export interface LogLike {
   sets_detail: unknown
 }
 
+// sets_detail 에는 입력이 없어도 화면이 저장하는 값이 섞여 있다: 패널 열림(_result_open 등),
+// 단위 토글(weight_unit, unit), 결과/EMOM 입력 종류(result_type, measure). 이것만으로는 기록이 아니다.
+const NON_CONTENT_KEYS = new Set(['weight_unit', 'unit', 'measure', 'result_type'])
+
 function hasValue(v: unknown): boolean {
-  if (v === null || v === undefined) return false
+  if (v === null || v === undefined || typeof v === 'boolean') return false
   if (typeof v === 'string') return v.trim() !== ''
   if (Array.isArray(v)) return v.some(hasValue)
-  if (typeof v === 'object') return Object.values(v).some(hasValue)
+  if (typeof v === 'object') {
+    return Object.entries(v).some(([k, x]) => !k.startsWith('_') && !NON_CONTENT_KEYS.has(k) && hasValue(x))
+  }
   return true
 }
 
 function detailHasValue(raw: unknown): boolean {
-  let detail = raw
   if (typeof raw === 'string') {
-    try { detail = JSON.parse(raw) } catch { return raw.trim() !== '' }
+    try { return hasValue(JSON.parse(raw)) } catch { return raw.trim() !== '' }
   }
-  if (!detail || typeof detail !== 'object' || Array.isArray(detail)) return hasValue(detail)
-  // 단위 토글만 해도 weight_unit 이 저장된다. 그것만으로는 기록이 아니다.
-  const { weight_unit: _unit, ...rest } = detail as Record<string, unknown>
-  return hasValue(rest)
+  return hasValue(raw)
 }
 
 /**

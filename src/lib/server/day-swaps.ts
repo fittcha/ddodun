@@ -57,12 +57,19 @@ export async function swapDays(athleteId: string, a: string, b: string): Promise
   const aIds = [...week.idsByDate.get(a)!]
   const bIds = [...week.idsByDate.get(b)!]
 
-  // ponytail: 트랜잭션이 아니라 update 2번 + 실패 시 보상. 원자성이 꼭 필요해지면 DB 함수(RPC)로.
-  const first = await db.from('workout_templates').update({ date: b, day_of_week: dowOf(b) }).in('id', aIds)
+  // ponytail: 트랜잭션이 아니라 update 2번 + 실패 시 보상. 같은 날을 동시에 바꾸는 경쟁도 막지 못한다.
+  // 둘 다 문제가 되면 DB 함수(RPC) 하나로 묶을 것.
+  const move = (ids: string[], to: string) =>
+    db.from('workout_templates').update({ date: to, day_of_week: dowOf(to) }).in('id', ids)
+  const first = await move(aIds, b)
   if (first.error) throw first.error
-  const second = await db.from('workout_templates').update({ date: a, day_of_week: dowOf(a) }).in('id', bIds)
+  const second = await move(bIds, a)
   if (second.error) {
-    await db.from('workout_templates').update({ date: a, day_of_week: dowOf(a) }).in('id', aIds)
+    // 두 번째가 실제로는 반영됐는데 에러만 받았을 수도 있으니 양쪽 모두 원래 날짜로 되돌린다.
+    const [ra, rb] = await Promise.all([move(aIds, a), move(bIds, b)])
+    if (ra.error || rb.error) {
+      console.error('day swap 보상 실패 — 수동 복구 필요', { a, b, aIds, bIds, ra: ra.error, rb: rb.error })
+    }
     throw second.error
   }
 }

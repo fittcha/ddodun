@@ -366,7 +366,7 @@ function WorkoutContent() {
                     date={d}
                     weekDays={weekDays}
                     state={swapState}
-                    align={i === 0 ? 'left' : i === 6 ? 'right' : 'center'}
+                    align={i <= 1 ? 'left' : i >= 5 ? 'right' : 'center'}
                     onPick={target => doSwap(d, target, false)}
                     onClose={() => setPopoverDate(null)}
                   />
